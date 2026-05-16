@@ -1,0 +1,56 @@
+.auth-page {
+  min-height: calc(100vh - 60px);
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+  padding: 32px 16px;
+}
+ 
+.auth-card {
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.1);
+  padding: 40px; width: 100%; max-width: 440px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+ 
+.auth-header {
+  text-align: center;
+  .auth-logo { font-size: 48px; margin-bottom: 8px; }
+  h1 { font-size: 24px; font-weight: 700; }
+  p  { font-size: 14px; color: #64748b; margin-top: 4px; }
+}
+ 
+.role-tabs {
+  display: flex; gap: 8px;
+  button {
+    flex: 1; padding: 10px; border-radius: 8px;
+    border: 1.5px solid #e2e8f0; background: #fff;
+    font-size: 13px; font-family: inherit; cursor: pointer; transition: all .15s;
+    &.active { border-color: #2563eb; background: #eff6ff; color: #2563eb; font-weight: 600; }
+  }
+}
+ 
+.password-wrap {
+  position: relative;
+  .form-control { padding-right: 42px; }
+  .pwd-toggle {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; font-size: 16px; padding: 0;
+  }
+}
+ 
+.strength-wrap { margin-top: 6px; display: flex; align-items: center; gap: 8px; }
+.strength-bar  { flex: 1; height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; }
+.strength-fill {
+  height: 100%; border-radius: 2px; transition: width .3s;
+  &.weak   { background: #dc2626; }
+  &.fair   { background: #d97706; }
+  &.good   { background: #16a34a; }
+  &.strong { background: #2563eb; }
+}
+ 
+.auth-footer {
+  text-align: center; font-size: 14px; color: #64748b;
+  display: flex; justify-content: center; gap: 6px;
+  a { color: #2563eb; font-weight: 500; text-decoration: none;
+      &:hover { text-decoration: underline; } }
+}

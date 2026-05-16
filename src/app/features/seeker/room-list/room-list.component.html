@@ -1,0 +1,205 @@
+<div class="room-list-page">
+  <div class="hero">
+    <h1>Tìm phòng trọ phù hợp với bạn</h1>
+    <p>Hàng nghìn phòng trọ tại Hà Nội và các tỉnh thành lớn</p>
+    <div class="search-bar">
+      <input type="text" class="search-input" [(ngModel)]="filter.keyword"
+             placeholder="Tìm theo tên, địa chỉ, phường/xã..." (keyup.enter)="applyFilter()" />
+      <button class="btn btn-primary" (click)="applyFilter()">🔍 Tìm kiếm</button>
+    </div>
+  </div>
+
+  <div class="container page">
+    <div class="layout">
+      <aside class="filter-sidebar">
+        <div class="filter-card">
+          <h3 class="filter-title">Bộ lọc</h3>
+
+          <div class="filter-section">
+            <label class="filter-label">Quận / Huyện</label>
+            <select class="form-control" [(ngModel)]="filter.district">
+              <option value="">Tất cả quận/huyện</option>
+              @for (d of districts; track d) {
+                <option [value]="d">{{ d }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="filter-section">
+            <label class="filter-label">Loại phòng</label>
+            <select class="form-control" [(ngModel)]="filter.roomType">
+              <option value="">Tất cả loại</option>
+              @for (rt of roomTypes | keyvalue; track rt.key) {
+                <option [value]="rt.key">{{ rt.value }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="filter-section">
+            <label class="filter-label">Khoảng giá (VNĐ/tháng)</label>
+            <div class="range-inputs">
+              <input type="number" class="form-control" [(ngModel)]="filter.minPrice"
+                     placeholder="Từ" step="500000" />
+              <span>—</span>
+              <input type="number" class="form-control" [(ngModel)]="filter.maxPrice"
+                     placeholder="Đến" step="500000" />
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <label class="filter-label">Diện tích (m²)</label>
+            <div class="range-inputs">
+              <input type="number" class="form-control" [(ngModel)]="filter.minArea" placeholder="Từ" />
+              <span>—</span>
+              <input type="number" class="form-control" [(ngModel)]="filter.maxArea" placeholder="Đến" />
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <label class="filter-label">Đối tượng</label>
+            <select class="form-control" [(ngModel)]="filter.genderRequirement">
+              <option value="">Tất cả</option>
+              <option value="MALE">Nam</option>
+              <option value="FEMALE">Nữ</option>
+            </select>
+          </div>
+
+          <div class="filter-section">
+            <label class="filter-checkbox">
+              <input type="checkbox" [(ngModel)]="filter.isFurnished" />
+              <span>Có nội thất đầy đủ</span>
+            </label>
+          </div>
+
+          <button class="btn btn-primary btn-block" (click)="applyFilter()">Áp dụng</button>
+          <button class="btn btn-ghost btn-block" (click)="resetFilter()">Xoá bộ lọc</button>
+        </div>
+      </aside>
+
+      <div class="rooms-main">
+        <div class="ai-search-panel">
+          <div class="ai-search-copy">
+            <div class="ai-search-kicker">AI Search</div>
+            <h3>Tìm bằng nhu cầu tự nhiên</h3>
+            <p>Mô tả ngắn điều bạn cần, AI sẽ tự điền bộ lọc phù hợp rồi tìm phòng cho bạn.</p>
+          </div>
+          <div class="ai-search-controls">
+            <textarea class="form-control ai-search-input"
+                      [(ngModel)]="aiSearchQuery"
+                      rows="3"
+                      placeholder="Ví dụ: cần phòng dưới 4 triệu ở Cầu Giấy, có điều hòa, ở được 2 người, ưu tiên studio gần trường"></textarea>
+            <div class="ai-search-actions">
+              <button class="btn btn-primary" (click)="applyAiSearch()" [disabled]="aiSearchLoading()">
+                @if (aiSearchLoading()) { Đang phân tích... } @else { Dùng AI để lọc }
+              </button>
+              @if (aiSearchNote()) {
+                <span class="chip chip-blue ai-search-note">{{ aiSearchNote() }}</span>
+              }
+            </div>
+            @if (aiSearchError()) {
+              <div class="alert alert-error">{{ aiSearchError() }}</div>
+            }
+          </div>
+        </div>
+
+        <div class="result-bar">
+          <span class="result-count">
+            @if (!loading()) { Tìm thấy <strong>{{ totalElements() }}</strong> phòng }
+            @else { Đang tìm... }
+          </span>
+          <div class="sort-wrap">
+            <label>Sắp xếp:</label>
+            <select class="form-control sort-select" [(ngModel)]="filter.sortBy" (change)="applyFilter()">
+              <option value="createdAt">Mới nhất</option>
+              <option value="price_asc">Giá thấp nhất</option>
+              <option value="price_desc">Giá cao nhất</option>
+              <option value="viewCount">Xem nhiều nhất</option>
+            </select>
+          </div>
+        </div>
+
+        @if (activeFilters().length > 0) {
+          <div class="active-filters">
+            @for (f of activeFilters(); track f.key) {
+              <span class="chip chip-blue">
+                {{ f.label }}
+                <button (click)="removeFilter(f.key)">✕</button>
+              </span>
+            }
+          </div>
+        }
+
+        @if (loading()) {
+          <div class="rooms-grid">
+            @for (i of skeletons; track $index) {
+              <div class="room-card-skeleton">
+                <div class="skeleton" style="height:200px"></div>
+                <div style="padding:14px;display:flex;flex-direction:column;gap:8px">
+                  <div class="skeleton" style="height:20px;width:60%"></div>
+                  <div class="skeleton" style="height:16px"></div>
+                  <div class="skeleton" style="height:16px;width:80%"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        @if (!loading() && rooms().length > 0) {
+          <div class="rooms-grid">
+            @for (room of rooms(); track room.id) {
+              <div class="room-card" (click)="goToDetail(room.id)">
+                <div class="room-image">
+                  <img [src]="room.primaryImageUrl || 'assets/room-placeholder.jpg'"
+                       [alt]="room.title" loading="lazy" />
+                  <button class="room-fav" (click)="toggleFav($event, room)"
+                          [title]="room.favorited ? 'Bỏ yêu thích' : 'Lưu yêu thích'">
+                    {{ room.favorited ? '❤️' : '🤍' }}
+                  </button>
+                  <span class="room-type-badge">{{ roomTypeLabel(room.roomType) }}</span>
+                </div>
+                <div class="room-body">
+                  <div class="room-price">{{ room.price | number:'1.0-0' }}đ<span>/tháng</span></div>
+                  <div class="room-title">{{ room.title }}</div>
+                  <div class="room-meta">
+                    <span>📐 {{ room.area }}m²</span>
+                    <span>👥 {{ room.maxPeople }} người</span>
+                    <span>{{ genderLabel(room.genderRequirement) }}</span>
+                  </div>
+                  <div class="room-location">📍 {{ room.district }}, {{ room.city }}</div>
+                  @if (room.amenities.length > 0) {
+                    <div class="room-amenities">
+                      @for (a of room.amenities.slice(0, 3); track a) {
+                        <span class="chip chip-gray">{{ a }}</span>
+                      }
+                      @if (room.amenities.length > 3) {
+                        <span class="chip chip-gray">+{{ room.amenities.length - 3 }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="pagination">
+            <button (click)="changePage(currentPage() - 1)" [disabled]="currentPage() === 0">‹</button>
+            @for (p of pageNumbers(); track p) {
+              <button [class.active]="p === currentPage()" (click)="changePage(p)">{{ p + 1 }}</button>
+            }
+            <button (click)="changePage(currentPage() + 1)"
+                    [disabled]="currentPage() >= totalPages() - 1">›</button>
+          </div>
+        }
+
+        @if (!loading() && rooms().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <h3>Không tìm thấy phòng</h3>
+            <p>Hãy thử thay đổi bộ lọc hoặc từ khoá tìm kiếm</p>
+            <button class="btn btn-outline" (click)="resetFilter()">Xoá bộ lọc</button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

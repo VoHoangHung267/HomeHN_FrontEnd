@@ -1,0 +1,82 @@
+<div class="container page">
+  <div class="page-header">
+    <div>
+      <h1>Lịch xem phòng</h1>
+      <p class="sub">
+        @if (auth.isSeeker()) {
+          Theo dõi các lịch hẹn xem phòng của bạn
+        } @else {
+          Danh sách lịch xem phòng liên quan đến tài khoản hiện tại
+        }
+      </p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert-error">{{ error() }}</div>
+  }
+
+  <div class="table-card">
+    @if (loading()) {
+      <div style="padding: 16px">
+        @for (_ of [1,2,3]; track $index) {
+          <div class="skeleton" style="height:84px;border-radius:10px;margin-bottom:10px"></div>
+        }
+      </div>
+    }
+
+    @if (!loading() && appointments().length === 0) {
+      <div class="empty-state">
+        <div style="font-size: 44px">📅</div>
+        <p>Chưa có lịch xem phòng nào</p>
+        <a routerLink="/rooms" class="btn btn-primary">Tìm phòng ngay</a>
+      </div>
+    }
+
+    @if (!loading() && appointments().length > 0) {
+      <div class="appointment-list">
+        @for (appointment of appointments(); track appointment.id) {
+          <div class="appointment-item">
+            <img [src]="appointment.roomPrimaryImage || 'assets/room-placeholder.jpg'"
+                 [alt]="appointment.roomTitle"
+                 class="appointment-thumb" />
+
+            <div class="appointment-main">
+              <div class="appointment-top">
+                <a [routerLink]="['/rooms', appointment.roomId]" class="appointment-room">
+                  {{ appointment.roomTitle }}
+                </a>
+                <span class="status-badge status-{{ appointment.status.toLowerCase() }}">
+                  {{ statusLabel(appointment.status) }}
+                </span>
+              </div>
+
+              <div class="appointment-meta">
+                <span>Thời gian: {{ appointment.requestedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                @if (auth.isSeeker()) {
+                  <span>Chủ nhà: {{ appointment.landlordName }}</span>
+                } @else {
+                  <span>Người xem: {{ appointment.seekerName }}</span>
+                }
+              </div>
+
+              @if (appointment.message) {
+                <div class="appointment-note">Lời nhắn: {{ appointment.message }}</div>
+              }
+              @if (appointment.landlordNote) {
+                <div class="appointment-note note-landlord">Ghi chú chủ nhà: {{ appointment.landlordNote }}</div>
+              }
+            </div>
+
+            <div class="appointment-actions">
+              @if (canCancel(appointment)) {
+                <button class="btn btn-outline btn-sm" (click)="cancelAppointment(appointment)">Huỷ lịch</button>
+              }
+              <a [routerLink]="['/rooms', appointment.roomId]" class="btn btn-ghost btn-sm">Xem phòng</a>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

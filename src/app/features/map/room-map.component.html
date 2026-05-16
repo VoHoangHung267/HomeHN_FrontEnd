@@ -1,0 +1,75 @@
+﻿<div class="map-page">
+
+  <!-- Sidebar -->
+  <div class="map-sidebar">
+    <div class="sidebar-header">
+      <h2>Bản đồ phòng trọ</h2>
+      @if (!loading()) {
+        <span class="room-count">{{ rooms().length }} phòng có toạ độ</span>
+      } @else {
+        <span class="room-count">Đang tải...</span>
+      }
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-section">
+      <select class="form-control" [(ngModel)]="filterDistrict">
+        <option value="">Tất cả phường/xã</option>
+        @for (d of districts; track d) {
+          <option [value]="d">{{ d }}</option>
+        }
+      </select>
+      <select class="form-control" [(ngModel)]="filterType">
+        <option value="">Tất cả loại phòng</option>
+        @for (rt of roomTypes; track rt[0]) {
+          <option [value]="rt[0]">{{ rt[1] }}</option>
+        }
+      </select>
+      <div class="price-range">
+        <input type="number" class="form-control" [(ngModel)]="filterMinPrice"
+               placeholder="Giá từ" step="500000" />
+        <span>—</span>
+        <input type="number" class="form-control" [(ngModel)]="filterMaxPrice"
+               placeholder="Đến" step="500000" />
+      </div>
+      <div class="filter-btns">
+        <button class="btn btn-primary btn-block" (click)="applyFilter()">Áp dụng</button>
+        <button class="btn btn-ghost btn-block" (click)="resetFilter()">Xoá lọc</button>
+      </div>
+    </div>
+
+    <!-- Room list -->
+    <div class="room-list">
+      @if (loading()) {
+        @for (_ of [1,2,3,4]; track $index) {
+          <div class="skeleton room-skeleton"></div>
+        }
+      }
+      @for (room of rooms(); track room.id) {
+        <div class="room-item"
+             [class.selected]="selectedRoom()?.id === room.id"
+             (click)="focusRoom(room)">
+          <img [src]="room.primaryImageUrl || 'assets/room-placeholder.jpg'"
+               class="room-item-img" [alt]="room.title" />
+          <div class="room-item-body">
+            <div class="room-item-price">{{ room.price | number:'1.0-0' }}đ</div>
+            <div class="room-item-title">{{ room.title }}</div>
+            <div class="room-item-loc">📍 {{ room.district }} · {{ room.area }}m²</div>
+          </div>
+          <button class="btn-detail" (click)="$event.stopPropagation(); goToRoom(room.id)">
+            →
+          </button>
+        </div>
+      }
+      @if (!loading() && rooms().length === 0) {
+        <div class="no-rooms">
+          <p>Không có phòng nào có toạ độ bản đồ</p>
+          <p class="hint">Chủ nhà cần nhập latitude/longitude khi đểng phòng</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Map container -->
+  <div class="map-container" #mapContainer></div>
+</div>

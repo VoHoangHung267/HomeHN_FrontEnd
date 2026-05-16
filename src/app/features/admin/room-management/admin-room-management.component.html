@@ -1,0 +1,222 @@
+﻿<div class="container page">
+  <div class="page-header">
+    <h1>Quản lý phòng</h1>
+    <div class="header-tabs">
+      <button [class.active]="activeTab() === 'rooms'"   (click)="activeTab.set('rooms')">Tất cả phòng</button>
+      <button [class.active]="activeTab() === 'reports'" (click)="activeTab.set('reports')">
+        Báo cáo vi phạm
+        @if (reports().length > 0) { <span class="badge-red">{{ reports().length }}</span> }
+      </button>
+    </div>
+  </div>
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• ROOMS TAB â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  @if (activeTab() === 'rooms') {
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <input type="text" class="form-control filter-input" [(ngModel)]="filter.keyword"
+             placeholder="Tìm tên phòng, địa chỉ..." (keyup.enter)="applyFilter()" />
+      <select class="form-control filter-select" [(ngModel)]="filter.district">
+        @for (d of districts; track d) {
+          <option [value]="d">{{ d || 'Tất cả phường/xã' }}</option>
+        }
+      </select>
+      <select class="form-control filter-select" [(ngModel)]="filter.status">
+        @for (s of statusOpts; track s.value) {
+          <option [value]="s.value">{{ s.label }}</option>
+        }
+      </select>
+      <button class="btn btn-primary" (click)="applyFilter()">Tìm</button>
+      <button class="btn btn-ghost" (click)="resetFilter()">Xoá</button>
+    </div>
+
+    <!-- Result count -->
+    <div class="result-info">
+      Tìm thấy <strong>{{ totalRooms() }}</strong> phòng
+    </div>
+
+    <!-- Loading -->
+    @if (loadingRooms()) {
+      <div class="loading-rows">
+        @for (_ of [1,2,3,4,5]; track $index) {
+          <div class="skeleton" style="height:60px;border-radius:8px;margin-bottom:8px"></div>
+        }
+      </div>
+    }
+
+    <!-- Table -->
+    @if (!loadingRooms() && rooms().length > 0) {
+      <div class="table-card">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Phòng</th>
+                <th>Chủ nhà</th>
+                <th>Giá</th>
+                <th>Loại</th>
+                <th>Trạng thái</th>
+                <th>Ngày đểng</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (room of rooms(); track room.id) {
+                <tr [class.row-hidden]="room.status === 'HIDDEN'">
+                  <td>
+                    <div class="room-row">
+                      <img [src]="room.primaryImageUrl || 'assets/room-placeholder.jpg'"
+                           class="room-thumb" [alt]="room.title" />
+                      <div>
+                        <div class="room-row-title">{{ room.title }}</div>
+                        <div class="room-row-loc">{{ room.district }} · {{ room.area }}m²</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="landlord-cell">
+                      <span class="landlord-name">{{ room.landlordName }}</span>
+                      <span class="landlord-phone">{{ room.landlordPhone }}</span>
+                    </div>
+                  </td>
+                  <td><span class="price-cell">{{ room.price | number:'1.0-0' }}đ</span></td>
+                  <td><span class="type-chip">{{ typeLabel(room.roomType) }}</span></td>
+                  <td>
+                    <span class="status-badge status-{{ room.status.toLowerCase() }}">
+                      {{ statusLabel(room.status) }}
+                    </span>
+                  </td>
+                  <td class="date-cell">{{ room.createdAt | date:'dd/MM/yy' }}</td>
+                  <td>
+                    <div class="action-btns">
+                      <a [routerLink]="['/rooms', room.id]" class="btn btn-ghost btn-sm" target="_blank">Xem</a>
+                      <button class="btn btn-sm"
+                              [class]="room.status === 'HIDDEN' ? 'btn-outline' : 'btn-warning'"
+                              (click)="toggleHidden(room)">
+                        {{ room.status === 'HIDDEN' ? 'Hiện' : 'Ẩn' }}
+                      </button>
+                      <button class="btn btn-danger btn-sm" (click)="deleteRoom(room)">Xoá</button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination">
+        <button (click)="changePage(currentPage() - 1)" [disabled]="currentPage() === 0">‹</button>
+        @for (p of pageNumbers(); track p) {
+          <button [class.active]="p === currentPage()" (click)="changePage(p)">{{ p + 1 }}</button>
+        }
+        <button (click)="changePage(currentPage() + 1)" [disabled]="currentPage() >= totalPages() - 1">›</button>
+      </div>
+    }
+
+    @if (!loadingRooms() && rooms().length === 0) {
+      <div class="empty-state">
+        <div style="font-size:48px">🏠</div>
+        <p>Không tìm thấy phòng nào</p>
+      </div>
+    }
+  }
+
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• REPORTS TAB â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  @if (activeTab() === 'reports') {
+    <div class="report-filter">
+      <label>Trạng thái:</label>
+      @for (s of reportStatusOpts; track s.value) {
+        <button [class.active]="reportStatus() === s.value"
+                (click)="reportStatus.set(s.value); loadReports()">
+          {{ s.label }}
+        </button>
+      }
+    </div>
+
+    @if (loadingReports()) {
+      <div class="loading-rows">
+        @for (_ of [1,2,3]; track $index) {
+          <div class="skeleton" style="height:80px;border-radius:8px;margin-bottom:8px"></div>
+        }
+      </div>
+    }
+
+    @if (!loadingReports() && reports().length === 0) {
+      <div class="empty-state">
+        <div style="font-size:48px">âœ…</div>
+        <p>Không có báo cáo nào</p>
+      </div>
+    }
+
+    @if (!loadingReports() && reports().length > 0) {
+      <div class="reports-list">
+        @for (report of reports(); track report.id) {
+          <div class="report-card"
+               [id]="'report-' + report.id"
+               [class.report-resolved]="report.status === 'RESOLVED'"
+               [class.report-focused]="focusedReportId() === report.id">
+            <div class="report-header">
+              <div class="report-meta">
+                <span class="report-room">🏠 {{ report.roomTitle }}</span>
+                <span class="report-by">Báo cáo bởi: {{ report.reporterName }} ({{ report.reporterEmail }})</span>
+                <span class="report-date">{{ report.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <span class="status-badge status-{{ report.status.toLowerCase() }}">
+                {{ reportStatusLabel(report.status) }}
+              </span>
+            </div>
+            <div class="report-reason">
+              <strong>Lý do:</strong> {{ report.reason }}
+            </div>
+            @if (report.adminNote) {
+              <div class="report-note">
+                <strong>Ghi chú admin:</strong> {{ report.adminNote }}
+              </div>
+            }
+            @if (report.landlordResponseType) {
+              <div class="report-note">
+                <strong>Phản hồi chủ phòng:</strong>
+                {{ report.landlordResponseType === 'WILL_FIX' ? 'Sẽ chỉnh sửa phòng' : 'Khiếu nại báo cáo' }}
+                <div style="margin-top:4px">{{ report.landlordResponseNote }}</div>
+              </div>
+            }
+            @if (report.status === 'PENDING' || report.status === 'REVIEWED') {
+              <div class="report-actions">
+                <a [routerLink]="['/rooms', report.roomId]" class="btn btn-ghost btn-sm" target="_blank">Xem phòng</a>
+                <button class="btn btn-outline btn-sm" (click)="openResolve(report)">Xử lý</button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
+
+<!-- Modal xử lý báo cáo -->
+@if (selectedReport()) {
+  <div class="modal-overlay" (click)="selectedReport.set(null)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3>Xử lý báo cáo</h3>
+      <p class="modal-sub">Phòng: <strong>{{ selectedReport()!.roomTitle }}</strong></p>
+      <p class="modal-sub">Lý do báo cáo: {{ selectedReport()!.reason }}</p>
+
+      <div class="form-group" style="margin-top:16px">
+        <label class="form-label">Ghi chú xử lý *</label>
+        <textarea class="form-control" [value]="resolveNote()"
+                  (input)="resolveNote.set($any($event.target).value)"
+                  rows="3" placeholder="Nhập ghi chú, lý do xử lý..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" (click)="selectedReport.set(null)">Huỷ</button>
+        <button class="btn btn-outline" (click)="confirmResolve('DISMISSED')">Bỏ qua</button>
+        <button class="btn btn-warning" (click)="confirmResolve('REVIEWED')">Đang xem xét</button>
+        <button class="btn btn-danger" (click)="confirmResolve('RESOLVED')">Xử lý + Ẩn phòng</button>
+      </div>
+    </div>
+  </div>
+}

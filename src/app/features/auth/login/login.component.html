@@ -1,0 +1,42 @@
+<!-- src/app/features/auth/login/login.component.html -->
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">🏠</div>
+      <h1>Đăng nhập</h1>
+      <p>Chào mừng bạn trở lại PhòngTrọ.vn</p>
+    </div>
+
+    @if (error) {
+      <div class="alert alert-error">{{error}}</div>
+    }
+
+    <form (ngSubmit)="onSubmit()" #f="ngForm">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" [(ngModel)]="email" name="email" required placeholder="you@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Mật khẩu</label>
+        <div class="password-wrap">
+          <input [type]="showPwd ? 'text' : 'password'" class="form-control"
+                 [(ngModel)]="password" name="password" required placeholder="••••••••" />
+          <button type="button" class="pwd-toggle" (click)="showPwd = !showPwd">
+            {{showPwd ? '🙈' : '👁️'}}
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" [disabled]="loading">
+        @if (loading) { <span class="spinner"></span> Đang đăng nhập... }
+        @else { Đăng nhập }
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <span>Chưa có tài khoản?</span>
+      <a routerLink="/auth/register">Đăng ký ngay</a>
+    </div>
+  </div>
+</div>

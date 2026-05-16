@@ -1,0 +1,150 @@
+<div class="container page">
+  <div class="breadcrumb">
+    <a routerLink="/bookings">Đơn thuê phòng</a> › <span class="current">Chi tiết</span>
+  </div>
+
+  @if (info()) {
+    <div class="alert alert-info">{{ info() }}</div>
+  }
+  @if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="skeleton" style="height: 320px; border-radius: 16px"></div>
+  }
+
+  @if (!loading() && booking(); as b) {
+    <div class="detail-layout">
+      <div class="detail-main">
+        <div class="card section-card">
+          <div class="section-header">
+            <div>
+              <h1>{{ b.roomTitle }}</h1>
+              <div class="contract-code">Mã hợp đồng dự kiến: {{ b.contractCode }}</div>
+            </div>
+            <div class="status-stack">
+              <span class="status-badge status-{{ b.status.toLowerCase() }}">{{ statusLabel(b.status) }}</span>
+              <span class="payment-badge payment-{{ b.paymentStatus.toLowerCase() }}">{{ b.paymentStatus }}</span>
+            </div>
+          </div>
+
+          <div class="grid two-col">
+            <div class="field">
+              <label>Người thuê</label>
+              <div>{{ b.tenantFullName }}</div>
+            </div>
+            <div class="field">
+              <label>Số điện thoại</label>
+              <div>{{ b.tenantPhone }}</div>
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <div>{{ b.tenantEmail || 'Chưa cung cấp' }}</div>
+            </div>
+            <div class="field">
+              <label>CCCD/CMND</label>
+              <div>{{ b.tenantIdentityNumber || 'Chưa cung cấp' }}</div>
+            </div>
+            <div class="field">
+              <label>Ngày vào ở</label>
+              <div>{{ b.moveInDate | date:'dd/MM/yyyy' }}</div>
+            </div>
+            <div class="field">
+              <label>Thời hạn thuê</label>
+              <div>{{ b.leaseMonths }} tháng</div>
+            </div>
+            <div class="field">
+              <label>Số người ở</label>
+              <div>{{ b.occupantCount }}</div>
+            </div>
+            <div class="field">
+              <label>Ngày tạo đơn</label>
+              <div>{{ b.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+            </div>
+          </div>
+
+          @if (b.note) {
+            <div class="note-box">
+              <strong>Ghi chú của người thuê:</strong>
+              <div>{{ b.note }}</div>
+            </div>
+          }
+          @if (b.landlordNote) {
+            <div class="note-box landlord">
+              <strong>Ghi chú từ chủ nhà:</strong>
+              <div>{{ b.landlordNote }}</div>
+            </div>
+          }
+        </div>
+
+        <div class="card section-card">
+          <h2>Thông tin cọc và hợp đồng</h2>
+          <div class="grid two-col">
+            <div class="field">
+              <label>Tiền thuê</label>
+              <div>{{ b.monthlyRent | number:'1.0-0' }}đ/tháng</div>
+            </div>
+            <div class="field">
+              <label>Tiền cọc</label>
+              <div>{{ b.depositAmount | number:'1.0-0' }}đ</div>
+            </div>
+            <div class="field">
+              <label>Nhà cung cấp thanh toán</label>
+              <div>{{ b.paymentProvider }}</div>
+            </div>
+            <div class="field">
+              <label>Thời điểm cọc</label>
+              <div>{{ b.depositPaidAt ? (b.depositPaidAt | date:'dd/MM/yyyy HH:mm') : 'Chưa thanh toán' }}</div>
+            </div>
+          </div>
+
+          <div class="contract-box">
+            <label>Điều khoản hợp đồng dự kiến</label>
+            <p>{{ b.contractTerms }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-side">
+        <div class="card action-card">
+          <img [src]="b.roomPrimaryImage || 'assets/room-placeholder.jpg'"
+               [alt]="b.roomTitle"
+               class="side-image" />
+          <div class="side-title">{{ b.roomTitle }}</div>
+
+          @if (!isLandlordView() && b.status === 'PENDING_PAYMENT' && b.paymentPayUrl) {
+            <button class="btn btn-primary btn-block" (click)="openPayment()">Thanh toán cọc bằng VNPAY</button>
+          }
+
+          @if (!isLandlordView() && (b.status === 'PENDING_PAYMENT' || b.status === 'PAYMENT_FAILED')) {
+            <button class="btn btn-outline btn-block" (click)="cancelBooking()">Huỷ đơn thuê</button>
+          }
+
+          @if (isLandlordView() && b.status === 'DEPOSIT_PAID') {
+            <textarea class="form-control"
+                      rows="3"
+                      [(ngModel)]="decisionNote"
+                      placeholder="Ghi chú cho người thuê hoặc thông tin bàn giao..."></textarea>
+            <div class="action-group">
+              <button class="btn btn-primary btn-block"
+                      (click)="landlordDecision('CONFIRMED')"
+                      [disabled]="decisionSaving()">Xác nhận thuê</button>
+              <button class="btn btn-danger btn-block"
+                      (click)="landlordDecision('REJECTED')"
+                      [disabled]="decisionSaving()">Từ chối</button>
+            </div>
+          }
+
+          @if (isLandlordView() && b.status === 'PENDING_PAYMENT') {
+            <div class="hint-box">Đang chờ người thuê thanh toán cọc qua VNPAY.</div>
+          }
+
+          @if (b.paymentMessage) {
+            <div class="hint-box">{{ b.paymentMessage }}</div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,110 @@
+﻿<div class="container page">
+  @if (loading()) {
+    <div class="card">
+      <div class="skeleton" style="height:28px;border-radius:8px;margin-bottom:16px"></div>
+      <div class="skeleton" style="height:120px;border-radius:12px"></div>
+    </div>
+  } @else if (error()) {
+    <div class="card error-card">
+      <h1>Không thể mở báo cáo</h1>
+      <p>{{ error() }}</p>
+      <a [routerLink]="backLink()" class="btn btn-primary">Quay lại</a>
+    </div>
+  } @else if (report(); as report) {
+    <div class="page-header">
+      <div>
+        <div class="eyebrow">Báo cáo #{{ report.id }}</div>
+        <h1>Chi tiết báo cáo</h1>
+        <p class="sub">Phòng: {{ report.roomTitle }}</p>
+      </div>
+      <div class="header-actions">
+        <a [routerLink]="['/rooms', report.roomId]" class="btn btn-outline">Xem phòng</a>
+        @if (auth.isAdmin()) {
+          <a [routerLink]="['/admin/room-management']" [queryParams]="{ tab: 'reports', reportId: report.id }"
+             class="btn btn-primary">Mở trang xử lý</a>
+        }
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="card">
+        <div class="meta-row">
+          <span class="meta-label">Trạng thái</span>
+          <span class="status-badge status-{{ report.status.toLowerCase() }}">{{ statusLabel(report.status) }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Người báo cáo</span>
+          <span>
+            {{ report.reporterName }}
+            @if (auth.isAdmin()) {
+              ({{ report.reporterEmail }})
+            }
+          </span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Thời gian gửi</span>
+          <span>{{ report.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Lý do báo cáo</h2>
+        <p class="body-text">{{ report.reason }}</p>
+      </div>
+
+      <div class="card">
+        <h2>Kết quả xử lý</h2>
+        @if (report.adminNote) {
+          <p class="body-text">{{ report.adminNote }}</p>
+        } @else {
+          <p class="muted">Admin chưa để lại ghi chú cho báo cáo này.</p>
+        }
+      </div>
+
+      <div class="card">
+        <h2>Phản hồi của chủ phòng</h2>
+        @if (report.landlordResponseType) {
+          <div class="meta-row">
+            <span class="meta-label">Hướng xử lý</span>
+            <span>{{ landlordResponseLabel(report.landlordResponseType) }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Thời gian phản hồi</span>
+            <span>{{ report.landlordRespondedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <p class="body-text" style="margin-top: 14px">{{ report.landlordResponseNote }}</p>
+        } @else if (canLandlordRespond()) {
+          <p class="muted">Admin ?? chuy?n b?o c?o sang tr?ng th?i ?ang xem x?t. B?n c? th? ph?n h?i ?? admin quy?t ??nh b??c x? l? ti?p theo.</p>
+
+          <div class="response-types">
+            <button class="choice-btn" [class.active]="responseType() === 'WILL_FIX'" (click)="responseType.set('WILL_FIX')">
+              Sẽ chỉnh sửa phòng
+            </button>
+            <button class="choice-btn" [class.active]="responseType() === 'CONTEST'" (click)="responseType.set('CONTEST')">
+              Khiếu nại báo cáo
+            </button>
+          </div>
+
+          <textarea
+            class="response-textarea"
+            [value]="responseNote()"
+            (input)="responseNote.set($any($event.target).value)"
+            rows="4"
+            placeholder="Mô tả rõ bạn sẽ sửa nội dung nào, hoặc giải thích vì sao báo cáo không đúng..."></textarea>
+
+          @if (responseError()) {
+            <div class="error-inline">{{ responseError() }}</div>
+          }
+
+          <div class="header-actions" style="margin-top: 14px">
+            <button class="btn btn-primary" (click)="submitLandlordResponse()" [disabled]="responseSaving()">
+              @if (responseSaving()) { Đang gửi... } @else { Gửi phản hồi cho admin }
+            </button>
+          </div>
+        } @else {
+          <p class="muted">Chưa có phản hồi nào từ chủ phòng.</p>
+        }
+      </div>
+    </div>
+  }
+</div>

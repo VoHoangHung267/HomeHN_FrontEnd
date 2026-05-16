@@ -1,0 +1,212 @@
+﻿<div class="container page">
+  <div class="page-header">
+    <div>
+      <h1>Quản lý phòng cho thuê</h1>
+      <p class="sub">Xin chào, {{ auth.user()?.fullName }}</p>
+    </div>
+    <a routerLink="rooms/new" class="btn btn-primary">+ Đăng phòng mới</a>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-num">{{ total() }}</div>
+      <div class="stat-lbl">Tổng phòng</div>
+    </div>
+    <div class="stat-card success">
+      <div class="stat-num">{{ activeCount() }}</div>
+      <div class="stat-lbl">Đang hiển thị</div>
+    </div>
+    <div class="stat-card warning">
+      <div class="stat-num">{{ pendingCount() }}</div>
+      <div class="stat-lbl">Chờ duyệt</div>
+    </div>
+    <div class="stat-card info">
+      <div class="stat-num">{{ totalViews() }}</div>
+      <div class="stat-lbl">Tổng lượt xem</div>
+    </div>
+  </div>
+
+  <div class="table-card appointments-card">
+    <div class="table-header">
+      <h2>Lịch xem phòng</h2>
+    </div>
+
+    @if (loadingAppointments()) {
+      <div style="padding:16px">
+        @for (_ of [1,2]; track $index) {
+          <div class="skeleton" style="height:72px;border-radius:8px;margin-bottom:8px"></div>
+        }
+      </div>
+    }
+
+    @if (!loadingAppointments() && appointments().length === 0) {
+      <div class="empty-state compact">
+        <p>Chưa có yêu cầu xem phòng nào</p>
+      </div>
+    }
+
+    @if (!loadingAppointments() && appointments().length > 0) {
+      <div class="appointment-list">
+        @for (a of appointments(); track a.id) {
+          <div class="appointment-item">
+            <img [src]="a.roomPrimaryImage || 'assets/room-placeholder.jpg'" class="room-thumb" [alt]="a.roomTitle" />
+            <div class="appointment-main">
+              <div class="room-row-title">{{ a.roomTitle }}</div>
+              <div class="room-row-loc">
+                {{ a.seekerName }} · {{ a.seekerPhone || 'Chưa có SĐT' }} · {{ a.requestedAt | date:'dd/MM/yyyy HH:mm' }}
+              </div>
+              @if (a.message) {
+                <div class="appointment-note">{{ a.message }}</div>
+              }
+              @if (a.landlordNote) {
+                <div class="appointment-note">Ghi chú: {{ a.landlordNote }}</div>
+              }
+            </div>
+            <span class="status-badge status-{{ a.status.toLowerCase() }}">{{ appointmentStatusLabel(a.status) }}</span>
+            <div class="action-btns">
+              @if (a.status === 'PENDING' || a.status === 'RESCHEDULED') {
+                <button class="btn btn-outline btn-sm" (click)="updateAppointment(a, 'ACCEPTED')">Nhận lịch</button>
+                <button class="btn btn-ghost btn-sm" (click)="rescheduleAppointment(a)">Đổi giờ</button>
+                <button class="btn btn-danger btn-sm" (click)="rejectAppointment(a)">Từ chối</button>
+              }
+              @if (a.status === 'ACCEPTED') {
+                <button class="btn btn-primary btn-sm" (click)="updateAppointment(a, 'COMPLETED')">Hoàn tất</button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <h2>Danh sách phòng</h2>
+    </div>
+
+    @if (loading()) {
+      <div style="padding:16px">
+        @for (_ of [1,2,3]; track $index) {
+          <div class="skeleton" style="height:60px;border-radius:8px;margin-bottom:8px"></div>
+        }
+      </div>
+    }
+
+    @if (!loading() && rooms().length === 0) {
+      <div class="empty-state">
+        <div style="font-size:48px">🏠</div>
+        <p>Bạn chưa đăng phòng nào</p>
+        <a routerLink="rooms/new" class="btn btn-primary">Đăng phòng đầu tiên</a>
+      </div>
+    }
+
+    @if (!loading() && rooms().length > 0) {
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Phòng</th>
+              <th>Giá</th>
+              <th>Trạng thái</th>
+              <th>Lượt xem</th>
+              <th>Ngày đăng</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (room of rooms(); track room.id) {
+              <tr>
+                <td>
+                  <div class="room-row">
+                    <img [src]="room.primaryImageUrl || 'assets/room-placeholder.jpg'"
+                         class="room-thumb" [alt]="room.title" />
+                    <div>
+                      <div class="room-row-title">{{ room.title }}</div>
+                      <div class="room-row-loc">{{ room.district }} · {{ room.area }}m²</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="price-cell">{{ room.price | number:'1.0-0' }}đ</span></td>
+                <td>
+                  <span class="status-badge status-{{ room.status.toLowerCase() }}">
+                    {{ statusLabel(room.status) }}
+                  </span>
+                </td>
+                <td>{{ room.viewCount }}</td>
+                <td>{{ room.createdAt | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <div class="action-btns">
+                    <a [routerLink]="['/rooms', room.id]" class="btn btn-ghost btn-sm">Xem</a>
+                    <a [routerLink]="['rooms', room.id, 'edit']" class="btn btn-outline btn-sm">Sửa</a>
+                    @if (canHide(room)) {
+                      <button class="btn btn-ghost btn-sm" (click)="hideRoom(room)">Ẩn tin</button>
+                    }
+                    @if (canReactivate(room)) {
+                      <button class="btn btn-primary btn-sm" (click)="reactivateRoom(room)">Hiện lại</button>
+                    }
+                    @if (canMarkRented(room)) {
+                      <button class="btn btn-outline btn-sm" (click)="markRented(room)">Đã cho thuê</button>
+                    }
+                    <button class="btn btn-danger btn-sm" (click)="deleteRoom(room)">Xoá</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+
+@if (showRescheduleModal()) {
+  <div class="modal-overlay" (click)="closeRescheduleModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Đề xuất giờ xem mới</h3>
+        <button class="modal-close" (click)="closeRescheduleModal()">✕</button>
+      </div>
+
+      <p class="modal-sub">
+        Chọn thời gian mới cho lịch hẹn của
+        <strong>{{ rescheduleTarget()?.seekerName }}</strong>.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label" for="reschedule-at">Thời gian đề xuất mới *</label>
+        <input
+          id="reschedule-at"
+          name="rescheduleAt"
+          class="form-control"
+          type="datetime-local"
+          [min]="rescheduleMin()"
+          [value]="rescheduleAt()"
+          (input)="rescheduleAt.set($any($event.target).value)" />
+      </div>
+
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label" for="reschedule-note">Ghi chú cho người thuê</label>
+        <textarea
+          id="reschedule-note"
+          name="rescheduleNote"
+          class="form-control"
+          rows="3"
+          [value]="rescheduleNote()"
+          (input)="rescheduleNote.set($any($event.target).value)"
+          placeholder="Ví dụ: Chủ nhà bận khung giờ cũ, mong bạn dời sang buổi chiều..."></textarea>
+      </div>
+
+      @if (rescheduleError()) {
+        <div class="form-error">{{ rescheduleError() }}</div>
+      }
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" (click)="closeRescheduleModal()" [disabled]="rescheduleSaving()">Huỷ</button>
+        <button class="btn btn-primary" (click)="submitReschedule()"
+                [disabled]="rescheduleSaving() || !rescheduleAt()">
+          @if (rescheduleSaving()) { Đang lưu... } @else { Gửi đề xuất }
+        </button>
+      </div>
+    </div>
+  </div>
+}

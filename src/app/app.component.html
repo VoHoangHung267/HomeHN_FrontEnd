@@ -1,0 +1,183 @@
+<nav class="navbar">
+  <a class="nav-brand" routerLink="/rooms">
+    <span class="brand-icon">🏠</span>
+    <span class="brand-text">HomeHN.vn</span>
+  </a>
+
+  <div class="nav-links">
+    <a routerLink="/rooms" routerLinkActive="active">Tìm phòng</a>
+
+    @if (auth.isLandlord() || auth.isAdmin()) {
+      <a routerLink="/landlord" routerLinkActive="active">Quản lý phòng của bạn</a>
+    }
+    @if (auth.isAdmin()) {
+      <a routerLink="/admin" routerLinkActive="active">Quản trị</a>
+    }
+    @if (auth.isAdmin()) {
+      <a routerLink="/admin/room-management" routerLinkActive="active">Quản lý tất cả phòng</a>
+    }
+    @if (auth.isLoggedIn()) {
+      <a routerLink="/chat" routerLinkActive="active" class="chat-link">
+        Tin nhắn
+        @if (chatService.unreadTotal() > 0) {
+          <span class="badge">{{ chatService.unreadTotal() }}</span>
+        }
+      </a>
+    }
+    @if (auth.isLoggedIn()) {
+      <div class="notif-wrap">
+        <button class="notif-btn" (click)="toggleNotif($event)" title="Thông báo">
+          🔔
+          @if (notifService.unreadCount() > 0) {
+            <span class="notif-badge">{{ notifService.unreadCount() }}</span>
+          }
+        </button>
+
+        @if (showNotif()) {
+          <div class="notif-dropdown" (click)="$event.stopPropagation()">
+            <div class="notif-header">
+              <span>Thông báo</span>
+              <button class="btn-text" (click)="markAllRead()">Đọc tất cả</button>
+            </div>
+            <div class="notif-list">
+              @if (notifications().length === 0) {
+                <div class="notif-empty">Chưa có thông báo nào</div>
+              }
+              @for (n of notifications(); track n.id) {
+                <div class="notif-item" [class.unread]="!n.isRead" (click)="openNotif(n)">
+                  <div class="notif-icon">{{ notifIcon(n.type) }}</div>
+                  <div class="notif-body">
+                    <div class="notif-title">{{ n.title }}</div>
+                    <div class="notif-msg">{{ n.message }}</div>
+                    <div class="notif-time">{{ n.createdAt | date:'dd/MM HH:mm' }}</div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+    <a routerLink="/map" routerLinkActive="active">Bản đồ</a>
+  </div>
+
+  <div class="nav-actions">
+    @if (auth.isLoggedIn()) {
+      <div class="user-menu" (click)="toggleMenu()">
+        <img [src]="auth.user()?.avatarUrl || 'assets/avatar-default.png'"
+             [alt]="auth.user()?.fullName"
+             class="avatar" />
+        <span class="user-name">{{ auth.user()?.fullName }}</span>
+        <span class="chevron">{{ menuOpen() ? '▲' : '▼' }}</span>
+
+        @if (menuOpen()) {
+          <div class="dropdown" (click)="$event.stopPropagation()">
+            <div class="dropdown-header">
+              <div class="dh-name">{{ auth.user()?.fullName }}</div>
+              <div class="dh-role role-badge role-{{ auth.user()?.role?.toLowerCase() }}">
+                {{ auth.user()?.role }}
+              </div>
+            </div>
+            <hr />
+            @if (auth.isSeeker()) {
+              <a routerLink="/rooms/favorites" (click)="menuOpen.set(false)">❤️ Phòng yêu thích</a>
+              <a routerLink="/appointments" (click)="menuOpen.set(false)">📅 Lịch xem phòng</a>
+            }
+            <a routerLink="/bookings" (click)="menuOpen.set(false)">🧾 Đơn thuê phòng</a>
+            <a routerLink="/profile" (click)="menuOpen.set(false)">👤 Hồ sơ cá nhân</a>
+            <hr />
+            <button (click)="logout()">🚪 Đăng xuất</button>
+          </div>
+        }
+      </div>
+    } @else {
+      <a routerLink="/auth/login" class="btn btn-outline">Đăng nhập</a>
+      <a routerLink="/auth/register" class="btn btn-primary">Đăng ký</a>
+    }
+  </div>
+</nav>
+
+<main class="main-content">
+  <router-outlet />
+</main>
+
+<button class="global-assistant-fab" (click)="toggleAssistant()" [class.open]="assistantOpen()" title="Trợ lý AI">
+  {{ assistantOpen() ? '✕' : 'AI' }}
+</button>
+
+@if (assistantOpen()) {
+  <div class="global-assistant-widget">
+    <div class="global-assistant-header">
+      <div>
+        <div class="global-assistant-title">Trợ lý HomeHN AI</div>
+        <div class="global-assistant-sub">Tìm phòng, đăng phòng, lịch hẹn, chỉ đường trong website</div>
+      </div>
+      <button class="global-assistant-close" (click)="toggleAssistant()">✕</button>
+    </div>
+
+    <div class="global-assistant-body">
+      <div class="assistant-thread">
+        @for (message of assistantMessages(); track $index) {
+          <div class="assistant-msg-row" [class.mine]="message.role === 'user'">
+            <div class="assistant-avatar">{{ message.role === 'assistant' ? 'AI' : 'Bạn' }}</div>
+            <div class="assistant-bubble" [class.mine]="message.role === 'user'">
+              <div class="assistant-text">{{ message.text }}</div>
+              @if (message.note) {
+                <div class="assistant-note">{{ message.note }}</div>
+              }
+              @if (message.actionUrl && message.actionLabel && message.role === 'assistant') {
+                <button class="assistant-link-btn" (click)="openAssistantAction(message.actionUrl)">
+                  {{ message.actionLabel }}
+                </button>
+              }
+              @if (message.suggestedRooms && message.suggestedRooms.length > 0 && message.role === 'assistant') {
+                <div class="assistant-room-list">
+                  @for (room of message.suggestedRooms; track room.id) {
+                    <button class="assistant-room-card" (click)="openSuggestedRoom(room.id)">
+                      <img [src]="room.primaryImageUrl || 'assets/room-placeholder.jpg'" [alt]="room.title" class="assistant-room-thumb" />
+                      <div class="assistant-room-body">
+                        <div class="assistant-room-title">{{ room.title }}</div>
+                        <div class="assistant-room-meta">{{ room.district }}, {{ room.city }} · {{ room.area }}m²</div>
+                        <div class="assistant-room-price">{{ room.price | number:'1.0-0' }}đ/tháng</div>
+                      </div>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (assistantLoading()) {
+          <div class="assistant-msg-row">
+            <div class="assistant-avatar">AI</div>
+            <div class="assistant-bubble">
+              <div class="assistant-typing">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="assistant-quick-prompts">
+        <button type="button" (click)="useAssistantPrompt('Tôi nên tìm phòng như thế nào cho nhanh?')">Tìm phòng nhanh</button>
+        <button type="button" (click)="useAssistantPrompt('Cách viết tin đăng để dễ có người thuê?')">Viết tin đăng</button>
+        <button type="button" (click)="useAssistantPrompt('Đặt lịch xem phòng và thuê phòng trên web này ra sao?')">Đặt lịch và thuê</button>
+      </div>
+
+      @if (assistantError()) {
+        <div class="alert alert-error">{{ assistantError() }}</div>
+      }
+
+      <div class="assistant-input-wrap">
+        <textarea class="form-control assistant-input" rows="3" [(ngModel)]="assistantQuestion"
+                  placeholder="Nhập câu hỏi của bạn..."
+                  (keydown)="onAssistantKeydown($event)"></textarea>
+        <button class="btn btn-primary assistant-send-btn" (click)="askAssistant()" [disabled]="assistantLoading()">
+          Gửi
+        </button>
+      </div>
+    </div>
+  </div>
+}

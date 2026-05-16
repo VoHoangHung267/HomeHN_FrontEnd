@@ -1,0 +1,62 @@
+<div class="container page">
+  <div class="page-header">
+    <div>
+      <h1>{{ (auth.isLandlord() || auth.isAdmin()) ? 'Đơn thuê phòng nhận được' : 'Đơn thuê phòng của bạn' }}</h1>
+      <p class="sub">Theo dõi thanh toán cọc, trạng thái thuê và thông tin hợp đồng.</p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  }
+
+  <div class="table-card">
+    @if (loading()) {
+      <div style="padding: 16px">
+        @for (_ of [1,2,3]; track $index) {
+          <div class="skeleton" style="height: 92px; border-radius: 10px; margin-bottom: 10px"></div>
+        }
+      </div>
+    }
+
+    @if (!loading() && bookings().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">🧾</div>
+        <p>Chưa có đơn thuê phòng nào</p>
+      </div>
+    }
+
+    @if (!loading() && bookings().length > 0) {
+      <div class="booking-list">
+        @for (booking of bookings(); track booking.id) {
+          <a class="booking-item" [routerLink]="['/bookings', booking.id]">
+            <img [src]="booking.roomPrimaryImage || 'assets/room-placeholder.jpg'"
+                 [alt]="booking.roomTitle"
+                 class="booking-thumb" />
+            <div class="booking-main">
+              <div class="booking-title">{{ booking.roomTitle }}</div>
+              <div class="booking-meta">
+                @if (auth.isLandlord() || auth.isAdmin()) {
+                  <span>{{ booking.seekerName }}</span>
+                } @else {
+                  <span>{{ booking.landlordName }}</span>
+                }
+                <span>·</span>
+                <span>Vào ở {{ booking.moveInDate | date:'dd/MM/yyyy' }}</span>
+                <span>·</span>
+                <span>{{ booking.leaseMonths }} tháng</span>
+              </div>
+              <div class="booking-money">
+                Cọc {{ booking.depositAmount | number:'1.0-0' }}đ · Thuê {{ booking.monthlyRent | number:'1.0-0' }}đ/tháng
+              </div>
+            </div>
+            <div class="booking-side">
+              <span class="status-badge status-{{ booking.status.toLowerCase() }}">{{ statusLabel(booking.status) }}</span>
+              <span class="payment-badge payment-{{ booking.paymentStatus.toLowerCase() }}">{{ paymentLabel(booking.paymentStatus) }}</span>
+            </div>
+          </a>
+        }
+      </div>
+    }
+  </div>
+</div>

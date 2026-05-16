@@ -1,0 +1,120 @@
+<div class="container page">
+  <h1 class="page-title">Bảng điều khiển Admin</h1>
+
+  <!-- Stats -->
+  @if (stats(); as s) {
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num">{{ s.totalUsers }}</div>
+        <div class="stat-lbl">Người dùng</div>
+      </div>
+      <div class="stat-card info">
+        <div class="stat-num">{{ s.totalRooms }}</div>
+        <div class="stat-lbl">Tổng phòng</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-num">{{ s.pendingRooms }}</div>
+        <div class="stat-lbl">Chờ duyệt</div>
+      </div>
+      <div class="stat-card danger">
+        <div class="stat-num">{{ s.totalReports }}</div>
+        <div class="stat-lbl">Báo cáo</div>
+      </div>
+    </div>
+  }
+
+  <!-- Tabs -->
+  <div class="admin-tabs">
+    <button [class.active]="tab() === 'rooms'" (click)="switchTab('rooms')">
+      Phòng chờ duyệt
+      @if (stats(); as s) {
+        @if (s.pendingRooms > 0) { <span class="tab-badge">{{ s.pendingRooms }}</span> }
+      }
+    </button>
+    <button [class.active]="tab() === 'users'" (click)="switchTab('users')">Quản lý users</button>
+  </div>
+
+  <!-- Rooms tab -->
+  @if (tab() === 'rooms') {
+    @if (pendingRooms().length === 0) {
+      <div class="empty-state">
+        <div style="font-size:48px">✅</div>
+        <p>Không có phòng nào chờ duyệt</p>
+      </div>
+    } @else {
+      <div class="rooms-grid">
+        @for (room of pendingRooms(); track room.id) {
+          <div class="admin-room-card">
+            <img [src]="room.primaryImageUrl || 'assets/room-placeholder.jpg'"
+                 class="admin-room-img" [alt]="room.title" />
+            <div class="admin-room-body">
+              <div class="admin-room-title">{{ room.title }}</div>
+              <div class="admin-room-meta">
+                {{ room.district }} · {{ room.area }}m² ·
+                <strong>{{ room.price | number:'1.0-0' }}đ/tháng</strong>
+              </div>
+              <div class="admin-room-meta">
+                Chủ: {{ room.landlordName }} · {{ room.createdAt | date:'dd/MM/yyyy' }}
+              </div>
+              <div class="admin-room-actions">
+                <a [routerLink]="['/rooms', room.id]" class="btn btn-ghost btn-sm" target="_blank">Xem</a>
+                <button class="btn btn-primary btn-sm" (click)="approveRoom(room)">✓ Duyệt</button>
+                <button class="btn btn-danger  btn-sm" (click)="rejectRoom(room)">✕ Từ chối</button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- Users tab -->
+  @if (tab() === 'users') {
+    <div class="table-card">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Người dùng</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Trạng thái</th>
+              <th>Ngày tạo</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of users(); track user.id) {
+              <tr>
+                <td>
+                  <div class="user-row">
+                    <img [src]="user.avatarUrl || 'assets/avatar-default.png'"
+                         class="user-avatar" [alt]="user.fullName" />
+                    <span class="user-name">{{ user.fullName }}</span>
+                  </div>
+                </td>
+                <td class="text-muted">{{ user.email }}</td>
+                <td>
+                  <span class="role-badge role-{{ user.role.toLowerCase() }}">{{ user.role }}</span>
+                </td>
+                <td>
+                  <span [class]="user.isActive ? 'text-success' : 'text-danger'">
+                    {{ user.isActive ? 'Hoạt động' : 'Bị khoá' }}
+                  </span>
+                </td>
+                <td class="text-muted">{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <button class="btn btn-sm"
+                          [class]="user.isActive ? 'btn-danger' : 'btn-outline'"
+                          (click)="toggleUser(user)">
+                    {{ user.isActive ? 'Khoá' : 'Mở khoá' }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

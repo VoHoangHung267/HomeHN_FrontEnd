@@ -1,0 +1,620 @@
+﻿@if (room(); as r) {
+<div class="detail-page">
+  <div class="container page">
+
+    <div class="breadcrumb">
+      <a routerLink="/rooms">Tìm phòng</a> › <span>{{r.district}}</span> › <span class="current">Chi tiết</span>
+    </div>
+
+    <div class="detail-layout">
+
+      <!-- LEFT: Gallery + Info -->
+      <div class="detail-left">
+
+        <div class="gallery">
+          <div class="gallery-main">
+            <img [src]="activeImage() || r.primaryImageUrl" [alt]="r.title" />
+            <button class="gallery-nav prev" (click)="prevImage()">‹</button>
+            <button class="gallery-nav next" (click)="nextImage()">›</button>
+            <div class="gallery-counter">{{activeIndex() + 1}} / {{r.imageUrls.length}}</div>
+          </div>
+          <div class="gallery-thumbs">
+            @for (img of r.imageUrls; track img; let i = $index) {
+            <div class="thumb" [class.active]="i === activeIndex()" (click)="setImage(i)">
+              <img [src]="img" />
+            </div>
+            }
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-header">
+            <div>
+              <div class="price-main">{{r.price | number:'1.0-0'}}đ<span>/tháng</span></div>
+              <h1 class="room-name">{{r.title}}</h1>
+              <div class="location-line">📍 {{r.address}}, {{r.district}}, {{r.city}}</div>
+            </div>
+            <button class="btn-fav" (click)="toggleFav()" [title]="r.favorited ? 'Bỏ yêu thích' : 'Yêu thích'">
+              <span>{{r.favorited ? '❤️' : '🤍'}}</span>
+            </button>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat">
+              <div class="stat-val">{{r.area}}m²</div>
+              <div class="stat-lbl">Diện tích</div>
+            </div>
+            <div class="stat">
+              <div class="stat-val">{{r.maxPeople}}</div>
+              <div class="stat-lbl">Số người</div>
+            </div>
+            <div class="stat">
+              <div class="stat-val">{{genderLabel()}}</div>
+              <div class="stat-lbl">Đối tượng</div>
+            </div>
+            <div class="stat">
+              <div class="stat-val">{{r.isFurnished ? 'Có' : 'Không'}}</div>
+              <div class="stat-lbl">Nội thất</div>
+            </div>
+            <div class="stat">
+              <div class="stat-val">{{r.viewCount}}</div>
+              <div class="stat-lbl">Lượt xem</div>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3 class="section-title">Chi phí hàng tháng</h3>
+            <table class="fees-table">
+              <tr>
+                <td>Tiền phòng</td>
+                <td class="fee-val">{{r.price | number:'1.0-0'}}đ</td>
+              </tr>
+              <tr>
+                <td>Điện</td>
+                <td class="fee-val">{{r.electricPrice | number:'1.0-0'}}đ / kWh</td>
+              </tr>
+              <tr>
+                <td>Nước</td>
+                <td class="fee-val">{{r.waterPrice | number:'1.0-0'}}đ / m³</td>
+              </tr>
+              @if (r.otherFees > 0) {
+              <tr>
+                <td>Phí khác</td>
+                <td class="fee-val">{{r.otherFees | number:'1.0-0'}}đ / tháng</td>
+              </tr>
+              }
+            </table>
+          </div>
+
+          @if (r.amenities.length > 0) {
+          <div class="section">
+            <h3 class="section-title">Tiện ích</h3>
+            <div class="amenities-grid">
+              @for (a of r.amenities; track a) {
+              <div class="amenity-item">✓ {{a}}</div>
+              }
+            </div>
+          </div>
+          }
+
+          <div class="section">
+            <h3 class="section-title">Mô tả</h3>
+            <p class="description" [class.expanded]="descExpanded()">{{r.description}}</p>
+            <button class="btn-text" (click)="toggleDesc()">
+              {{descExpanded() ? 'Thu gọn ↑' : 'Xem thêm ↓'}}
+            </button>
+          </div>
+
+          <div class="posted-time">Đăng ngày {{r.createdAt | date:'dd/MM/yyyy'}}</div>
+        </div>
+
+        @if (recommendations().length > 0) {
+        <div class="info-card">
+          <div class="section">
+            <h3 class="section-title">Gợi ý phòng tương tự</h3>
+            <div class="recommendation-list">
+              @for (item of recommendations(); track item.id) {
+              <div class="recommendation-item" (click)="goToRoom(item.id)">
+                <div class="recommendation-top">
+                  <img [src]="item.primaryImageUrl || 'assets/room-placeholder.jpg'" class="recommendation-thumb"
+                    [alt]="item.title" />
+                  <div class="recommendation-body">
+                    <div class="recommendation-title">{{ item.title }}</div>
+                    <div class="recommendation-location">{{ item.district }}, {{ item.city }}</div>
+                  </div>
+                  <div class="recommendation-price">
+                    {{ item.price | number:'1.0-0' }}đ
+                  </div>
+                </div>
+                <div class="recommendation-meta">{{ item.area }}m² · {{ item.maxPeople }} người · {{ item.isFurnished ? 'Có nội thất' : 'Không nội thất' }}</div>
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+      <!-- Reviews section -->
+      <div class="reviews-section">
+        <div class="reviews-header">
+          <h3>
+            Đánh giá
+            @if ((r.reviewCount ?? 0) > 0) {
+            <span class="review-avg">
+              ⭐ {{ r.avgRating | number:'1.1-1' }}
+              <span class="review-cnt">({{ r.reviewCount }} đánh giá)</span>
+            </span>
+            }
+          </h3>
+        </div>
+
+        <!-- Star rating overview -->
+        @if ((r.reviewCount ?? 0) > 0) {
+        <div class="rating-bar">
+          @for (star of [5,4,3,2,1]; track star) {
+          <div class="rating-row">
+            <span class="rating-label">{{ star }}⭐</span>
+            <div class="rating-track">
+              <div class="rating-fill" [style.width.%]="getRatingPercent(star)"></div>
+            </div>
+            <span class="rating-num">{{ getRatingCount(star) }}</span>
+          </div>
+          }
+        </div>
+        }
+
+        <!-- Form đánh giá -->
+        @if (auth.isSeeker()) {
+        <div class="review-form-section">
+          @if (!myReview()) {
+          <!-- Ch?a c? review ? t?o m?i -->
+          <div class="review-form-card">
+            <h4>{{ showReviewForm() ? 'Viết đánh giá của bạn' : '' }}</h4>
+            @if (!showReviewForm()) {
+            <button class="btn btn-outline btn-sm" (click)="showReviewForm.set(true)">
+              ✍️ Viết đánh giá
+            </button>
+            } @else {
+            <div class="star-input">
+              @for (s of [1,2,3,4,5]; track s) {
+              <span class="star-btn" [class.active]="s <= reviewRating()" (click)="reviewRating.set(s)"
+                (mouseenter)="reviewHover.set(s)" (mouseleave)="reviewHover.set(0)">
+                {{ s <= (reviewHover() || reviewRating()) ? '⭐' : '☆' }} </span>
+                  }
+                  <span class="star-label">{{ starLabel() }}</span>
+            </div>
+            <textarea class="form-control review-textarea" [(ngModel)]="reviewComment" [maxlength]="200" rows="3"
+              placeholder="Chia sẻ trải nghiệm của bạn về phòng này...">
+            </textarea>
+            <div class="review-media-upload">
+              <label class="upload-label" for="review-media-input">Thêm ảnh/video</label>
+              <input id="review-media-input" type="file" accept="image/*,video/*" multiple
+                (change)="onReviewMediaSelected($event)" />
+              <div class="upload-hint">Tối đa 6 tệp. H✕ trợ ảnh và video.</div>
+            </div>
+            @if (reviewMedia().length > 0) {
+            <div class="review-media-preview">
+              @for (media of reviewMedia(); track mediaTrackBy($index); let i = $index) {
+              <div class="media-preview-item">
+                @if (media.kind === 'image') {
+                <img [src]="media.url" alt="Review media preview" />
+                } @else {
+                <video [src]="media.url" controls preload="metadata"></video>
+                }
+                <button type="button" class="remove-media-btn" (click)="removeReviewMedia(i)">✕</button>
+              </div>
+              }
+            </div>
+            }
+            @if (reviewMediaError()) {
+            <div class="report-error">{{ reviewMediaError() }}</div>
+            }
+            <div class="review-form-meta">
+              <span class="char-count">{{ reviewComment.length }}/200</span>
+              <div class="review-form-btns">
+                <button class="btn btn-ghost btn-sm" (click)="cancelReview()">Huỷ</button>
+                <button class="btn btn-primary btn-sm" (click)="submitReview()"
+                  [disabled]="reviewSaving() || reviewRating() === 0">
+                  @if (reviewSaving()) { Đang gửi... } @else { Gửi đánh giá }
+                </button>
+              </div>
+            </div>
+            }
+          </div>
+          } @else {
+          <!-- ?? c? review ? hi?n + cho s?a -->
+          <div class="my-review-card">
+            <div class="my-review-header">
+              <span class="my-review-label">Đánh giá của bạn</span>
+              <div class="my-review-actions">
+                <button class="btn btn-ghost btn-sm" (click)="editMyReview()">Sửa</button>
+                <button class="btn btn-danger btn-sm" (click)="deleteMyReview()">Xoá</button>
+              </div>
+            </div>
+            @if (!editingReview()) {
+            <div class="review-stars">{{ '⭐'.repeat(myReview()!.rating) }}</div>
+            <p class="review-comment">{{ myReview()!.comment }}</p>
+            @if (myReview()!.media.length > 0) {
+            <div class="review-media-gallery">
+              @for (media of myReview()!.media; track media.id) {
+              <div class="review-media-item">
+                @if (isImageMedia(media.type)) {
+                <img [src]="media.url" alt="Review media" />
+                } @else {
+                <video [src]="media.url" controls preload="metadata"></video>
+                }
+              </div>
+              }
+            </div>
+            }
+            } @else {
+            <!-- Inline edit form -->
+            <div class="criteria-row main-rating">
+              <span class="criteria-label">Đánh giá chung *</span>
+              <div class="star-input">
+                @for (s of [1,2,3,4,5]; track s) {
+                <span class="star-btn" [class.active]="s <= (reviewHover() || reviewRating())"
+                  (click)="reviewRating.set(s)" (mouseenter)="reviewHover.set(s)" (mouseleave)="reviewHover.set(0)">
+                  {{ s <= (reviewHover() || reviewRating()) ? '⭐' : '☆' }} </span>
+                    }
+                    <span class="star-label">{{ starLabel() }}</span>
+              </div>
+            </div>
+
+            <!-- 4 tiêu chí phụ -->
+            <div class="sub-criteria">
+              @for (c of subCriteria; track c.key) {
+              <div class="criteria-row">
+                <span class="criteria-label">{{ c.label }}</span>
+                <div class="star-input sm">
+                  @for (s of [1,2,3,4,5]; track s) {
+                  <span class="star-btn sm" [class.active]="s <= getSubRating(c.key)" (click)="setSubRating(c.key, s)">
+                    {{ s <= getSubRating(c.key) ? '⭐' : '☆' }} </span>
+                      }
+                      @if (getSubRating(c.key) > 0) {
+                      <span class="clear-sub" (click)="setSubRating(c.key, 0)">✕</span>
+                      }
+                </div>
+              </div>
+              }
+            </div>
+
+            <!-- Comment -->
+            <textarea class="form-control review-textarea" [(ngModel)]="reviewComment" [maxlength]="200" rows="3"
+              placeholder="Chia sẻ trải nghiệm của bạn (tối đa 200 ký tự)...">
+</textarea>
+            <div class="review-media-upload">
+              <label class="upload-label" for="review-media-edit-input">Thay ảnh/video</label>
+              <input id="review-media-edit-input" type="file" accept="image/*,video/*" multiple
+                (change)="onReviewMediaSelected($event)" />
+              <div class="upload-hint">Nếu chọn file mới, media cũ của đánh giá sẽ được thay thế.</div>
+            </div>
+            @if (reviewMedia().length > 0) {
+            <div class="review-media-preview">
+              @for (media of reviewMedia(); track mediaTrackBy($index); let i = $index) {
+              <div class="media-preview-item">
+                @if (media.kind === 'image') {
+                <img [src]="media.url" alt="Review media preview" />
+                } @else {
+                <video [src]="media.url" controls preload="metadata"></video>
+                }
+                <button type="button" class="remove-media-btn" (click)="removeReviewMedia(i)">✕</button>
+              </div>
+              }
+            </div>
+            } @else if (myReview()!.media.length > 0) {
+            <div class="review-media-gallery">
+              @for (media of myReview()!.media; track media.id) {
+              <div class="review-media-item">
+                @if (isImageMedia(media.type)) {
+                <img [src]="media.url" alt="Review media" />
+                } @else {
+                <video [src]="media.url" controls preload="metadata"></video>
+                }
+              </div>
+              }
+            </div>
+            }
+            @if (reviewMediaError()) {
+            <div class="report-error">{{ reviewMediaError() }}</div>
+            }
+            <div class="review-form-meta">
+              <span class="char-count">{{ reviewComment.length }}/200</span>
+              <div class="review-form-btns">
+                <button class="btn btn-ghost btn-sm" (click)="cancelReview()">Huỷ</button>
+                <button class="btn btn-primary btn-sm" (click)="saveEditReview()"
+                  [disabled]="reviewSaving() || reviewRating() === 0">
+                  @if (reviewSaving()) { Đang gửi... } @else { Gửi đánh giá }
+                </button>
+              </div>
+            </div>
+            }
+          </div>
+          }
+        </div>
+        }
+
+        <!-- Danh sách reviews -->
+        @if (reviews().length > 0) {
+        <div class="review-list">
+          @for (review of reviews(); track review.id) {
+          <div class="review-item">
+            <div class="review-top">
+              <img [src]="review.reviewerAvatar || 'assets/avatar-default.png'" class="reviewer-avatar"
+                [alt]="review.reviewerName" />
+              <div class="reviewer-info">
+                <div class="reviewer-name">{{ review.reviewerName }}</div>
+                <div class="reviewer-date">{{ review.createdAt | date:'dd/MM/yyyy' }}</div>
+              </div>
+              <div class="review-rating-main">
+                <span class="stars-display">{{ starsDisplay(review.rating) }}</span>
+                <span class="rating-num">{{ review.rating }}/5</span>
+              </div>
+            </div>
+
+            <!-- Tiêu chí phụ nếu có -->
+            @if (review.ratingLocation || review.ratingPrice || review.ratingLandlord || review.ratingHygiene) {
+            <div class="sub-ratings-display">
+              @for (c of subCriteria; track c.key) {
+              @if (getReviewSubRating(review, c.key) > 0) {
+              <span class="sub-rating-chip">
+                {{ c.label }}: {{ getReviewSubRating(review, c.key) }}⭐
+              </span>
+              }
+              }
+            </div>
+            }
+
+            @if (review.comment) {
+            <p class="review-body">{{ review.comment }}</p>
+            }
+            @if (review.media.length > 0) {
+            <div class="review-media-gallery">
+              @for (media of review.media; track media.id) {
+              <div class="review-media-item">
+                @if (isImageMedia(media.type)) {
+                <img [src]="media.url" alt="Review media" />
+                } @else {
+                <video [src]="media.url" controls preload="metadata"></video>
+                }
+              </div>
+              }
+            </div>
+            }
+          </div>
+          }
+        </div>
+        } @else if ((r.reviewCount ?? 0) === 0) {
+        <div class="no-reviews">Chưa có đánh giá nào. Hãy là người đầu tiên!</div>
+        }
+      </div>
+
+      <!-- RIGHT: Landlord + Contact -->
+      <div class="detail-right">
+        <div class="landlord-card">
+          <h3>Thông tin chủ nhà</h3>
+          <div class="landlord-info">
+            <img [src]="r.landlordAvatar || 'assets/avatar-default.png'" class="landlord-avatar" />
+            <div>
+              <div class="landlord-name">{{r.landlordName}}</div>
+              <div class="landlord-badge">Chủ nhà</div>
+            </div>
+          </div>
+          <div class="contact-actions">
+            @if (!auth.isLandlord() && !auth.isAdmin()) {
+            <button class="btn btn-primary btn-block booking-cta" (click)="openBooking()">Yêu cầu thuê phòng</button>
+            }
+            <a [href]="'tel:' + r.landlordPhone" class="btn btn-primary btn-block">
+              📞 {{r.landlordPhone}}
+            </a>
+            @if (!auth.isLandlord() && !auth.isAdmin()) {
+            <button class="btn btn-outline btn-block" (click)="openChat()">💬 Nhắn tin</button>
+            <button class="btn btn-outline btn-block" (click)="openAppointment()">📄 Đặt lịch xem phòng</button>
+            }
+            <a [href]="'https://zalo.me/' + r.landlordPhone" target="_blank" class="btn btn-outline btn-block">
+              Liên hệ Zalo
+            </a>
+          </div>
+        </div>
+        <div class="report-card">
+          @if (!reportDone()) {
+          <button class="btn-text danger" (click)="openReport()">âš‘ Báo cáo tin đểng này</button>
+          } @else {
+          <div class="report-sent">? ?? g?i b?o c?o, ch?ng t?i s? xem x?t s?m</div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  @if (showReportModal()) {
+  <div class="modal-overlay" (click)="showReportModal.set(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Báo cáo tin đểng</h3>
+        <button class="modal-close" (click)="showReportModal.set(false)">✕</button>
+      </div>
+
+      @if (!reportDone()) {
+      <p class="modal-sub">Chọn lý do báo cáo:</p>
+
+      <div class="report-reasons">
+        @for (reason of reportReasons; track reason) {
+        <label class="reason-item">
+          <input type="radio" name="reason" [value]="reason" [checked]="selectedReason() === reason"
+            (change)="selectedReason.set(reason); customReason.set('')" />
+          <span>{{ reason }}</span>
+        </label>
+        }
+      </div>
+
+      @if (selectedReason() === 'Khác') {
+      <div class="form-group" style="margin-top:12px">
+        <textarea class="form-control" rows="3" [value]="customReason()"
+          (input)="customReason.set($any($event.target).value)" placeholder="Mô tả chi tiết vấn đề..."></textarea>
+      </div>
+      }
+
+      @if (reportError()) {
+      <div class="report-error">{{ reportError() }}</div>
+      }
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" (click)="showReportModal.set(false)">Huỷ</button>
+        <button class="btn btn-danger" (click)="submitReport()"
+          [disabled]="reportSending() || !selectedReason() || (selectedReason() === 'Khác' && !customReason().trim())">
+          @if (reportSending()) { Đang gửi... } @else { Gửi báo cáo }
+        </button>
+      </div>
+      } @else {
+      <div class="report-success">
+        <div class="success-icon">✓</div>
+        <p>Báo cáo đã được gửi thành công!</p>
+        <p class="modal-sub">Chúng tôi sẽ xem xét trong 24-48 giờ.</p>
+        <button class="btn btn-primary" style="margin-top:16px" (click)="showReportModal.set(false)">Đóng</button>
+      </div>
+      }
+    </div>
+  </div>
+  }
+  @if (showBookingModal()) {
+  <div class="modal-overlay" (click)="showBookingModal.set(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Yêu cầu thuê phòng</h3>
+        <button class="modal-close" (click)="showBookingModal.set(false)">✕</button>
+      </div>
+
+      <p class="modal-sub">Nhập thông tin thuê phòng, sau đó hệ thống sẽ tạo đơn và link thanh toán cọc VNPAY.</p>
+
+      <div class="form-group">
+        <label class="form-label">Họ tên người thuê *</label>
+        <input class="form-control"
+               [value]="bookingFullName()"
+               (input)="bookingFullName.set($any($event.target).value)" />
+      </div>
+
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label">Số điện thoại *</label>
+        <input class="form-control"
+               [value]="bookingPhone()"
+               (input)="bookingPhone.set($any($event.target).value)" />
+      </div>
+
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label">Email</label>
+        <input class="form-control"
+               [value]="bookingEmail()"
+               (input)="bookingEmail.set($any($event.target).value)" />
+      </div>
+
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label">CCCD/CMND</label>
+        <input class="form-control"
+               [value]="bookingIdentityNumber()"
+               (input)="bookingIdentityNumber.set($any($event.target).value)" />
+      </div>
+
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label">Ngày dự kiến vào ở *</label>
+        <input class="form-control"
+               type="date"
+               [value]="bookingMoveInDate()"
+               (input)="bookingMoveInDate.set($any($event.target).value)" />
+      </div>
+
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label">Thời hạn thuê (tháng) *</label>
+        <input class="form-control"
+               type="number"
+               min="1"
+               max="36"
+               [value]="bookingLeaseMonths()"
+               (input)="bookingLeaseMonths.set(+$any($event.target).value || 1)" />
+      </div>
+
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label">Số người ở *</label>
+        <input class="form-control"
+               type="number"
+               min="1"
+               [value]="bookingOccupantCount()"
+               (input)="bookingOccupantCount.set(+$any($event.target).value || 1)" />
+      </div>
+
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label">Ghi chú</label>
+        <textarea class="form-control"
+                  rows="3"
+                  [value]="bookingNote()"
+                  (input)="bookingNote.set($any($event.target).value)"
+                  placeholder="Ví dụ: tôi muđn vào ở đầu tháng sau, cần hợp đồng 6 tháng..."></textarea>
+      </div>
+
+      @if (bookingError()) {
+      <div class="report-error">{{ bookingError() }}</div>
+      }
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" (click)="showBookingModal.set(false)">Hủy</button>
+        <button class="btn btn-primary" (click)="submitBooking()" [disabled]="bookingSending()">
+          @if (bookingSending()) { Đang tạo đơn... } @else { Tạo đơn thuê và thanh toán cọc }
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+  @if (showAppointmentModal()) {
+  <div class="modal-overlay" (click)="showAppointmentModal.set(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Đặt lịch xem phòng</h3>
+        <button class="modal-close" (click)="showAppointmentModal.set(false)">✕</button>
+      </div>
+
+      @if (!appointmentDone()) {
+      <p class="modal-sub">Chọn thời gian bạn muđn đến xem phòng và gửi lời nhắn cho chủ nhà.</p>
+      <div class="form-group">
+        <label class="form-label">Thời gian xem phòng *</label>
+        <input class="form-control" type="datetime-local"
+               [min]="appointmentMin()"
+               [value]="appointmentAt()"
+               (input)="appointmentAt.set($any($event.target).value)" />
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label">Lời nhắn</label>
+        <textarea class="form-control" rows="3"
+                  [value]="appointmentMessage()"
+                  (input)="appointmentMessage.set($any($event.target).value)"
+                  placeholder="Ví dụ: Tôi muđn xem phòng vào buổi chiều, đi 2 người..."></textarea>
+      </div>
+      @if (appointmentError()) {
+      <div class="report-error">{{ appointmentError() }}</div>
+      }
+      <div class="modal-actions">
+        <button class="btn btn-ghost" (click)="showAppointmentModal.set(false)">Huỷ</button>
+        <button class="btn btn-primary" (click)="submitAppointment()"
+                [disabled]="appointmentSending() || !appointmentAt()">
+          @if (appointmentSending()) { Đang gửi... } @else { Gửi yêu cầu }
+        </button>
+      </div>
+      } @else {
+      <div class="report-success">
+        <div class="success-icon">✓</div>
+        <p>Đã gửi yêu cầu xem phòng!</p>
+        <p class="modal-sub">Chủ nhà sẽ phản hồi lịch hẹn của bạn.</p>
+        <button class="btn btn-primary" style="margin-top:16px" (click)="showAppointmentModal.set(false)">Đóng</button>
+      </div>
+      }
+    </div>
+  </div>
+  }
+</div>
+} @else {
+<div class="container page">
+  <div class="skeleton" style="height:400px;border-radius:12px;margin-bottom:20px"></div>
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:24px">
+    <div class="skeleton" style="height:300px;border-radius:12px"></div>
+    <div class="skeleton" style="height:300px;border-radius:12px"></div>
+  </div>
+</div>
+}

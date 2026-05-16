@@ -1,0 +1,276 @@
+<div class="chat-layout">
+  <div class="chat-sidebar">
+    <div class="sidebar-header">
+      <h2>Tin nhắn</h2>
+    </div>
+
+    <div class="chat-list">
+      @if (chatRooms().length === 0) {
+        <div class="empty-chat">Chưa có cuộc trò chuyện nào</div>
+      }
+
+      @for (cr of chatRooms(); track cr.id) {
+        <div class="chat-item" [class.active]="activeChatId() === cr.id" (click)="openChatRoom(cr)">
+          <img [src]="cr.roomPrimaryImage || 'assets/room-placeholder.jpg'"
+               class="chat-thumb" [alt]="cr.roomTitle" />
+          <div class="chat-item-info">
+            <div class="chat-item-name">
+              {{ auth.isSeeker() ? cr.landlordName : cr.seekerName }}
+            </div>
+            <div class="chat-item-room">{{ cr.roomTitle }}</div>
+            <div class="chat-item-last">{{ cr.lastMessage || 'Bắt đầu trò chuyện' }}</div>
+          </div>
+          @if (cr.unreadCount > 0) {
+            <span class="unread-badge">{{ cr.unreadCount }}</span>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="chat-main">
+    @if (!activeChatId()) {
+      <div class="chat-placeholder">
+        <div class="ph-icon">💬</div>
+        <h3>Chọn một cuộc trò chuyện</h3>
+        <p>Hoặc liên hệ chủ phòng từ trang chi tiết phòng</p>
+      </div>
+    }
+
+    @if (activeChatId() && activeChat(); as chat) {
+      <div class="chat-header">
+        <img [src]="chat.roomPrimaryImage || 'assets/room-placeholder.jpg'" class="chat-header-thumb" />
+        <div class="chat-header-info">
+          <div class="chat-header-name">
+            {{ auth.isSeeker() ? chat.landlordName : chat.seekerName }}
+          </div>
+          <div class="chat-header-room" (click)="goToRoom(chat.roomId)">
+            🏠 {{ chat.roomTitle }}
+          </div>
+        </div>
+        <div class="ws-status" [class.connected]="chatService.connected()">
+          {{ chatService.connected() ? '● Online' : '○ Đang kết nối...' }}
+        </div>
+      </div>
+
+      <div class="chat-body">
+        <div class="conversation-panel">
+          <div class="messages-wrap" #messagesWrap>
+            @for (msg of messages(); track msg.id) {
+              <div class="message-row" [class.mine]="msg.senderId === currentUserId()">
+                @if (msg.senderId !== currentUserId()) {
+                  <img [src]="msg.senderAvatar || 'assets/avatar-default.png'"
+                       class="msg-avatar" [alt]="msg.senderName" />
+                }
+                <div class="message-bubble" [class.mine]="msg.senderId === currentUserId()">
+                  <div class="msg-content">{{ msg.content }}</div>
+                  <div class="msg-time">{{ msg.sentAt | date:'HH:mm' }}</div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="chat-input-area">
+            <input type="text" class="chat-input"
+                   [value]="inputText()"
+                   (input)="inputText.set($any($event.target).value)"
+                   (keydown)="onKeydown($event)"
+                   placeholder="Nhập tin nhắn... (Enter để gửi)"
+                   [disabled]="!chatService.connected()" />
+            <button class="btn btn-primary send-btn"
+                    (click)="sendMessage()"
+                    [disabled]="!inputText().trim() || !chatService.connected()">
+              Gửi
+            </button>
+          </div>
+        </div>
+
+        <aside class="action-panel">
+          <div class="action-panel-header">
+            <div>
+              <div class="action-title">Tác vụ với phòng này</div>
+              <div class="action-sub">Hẹn lịch và thuê phòng ngay trong cuộc trò chuyện</div>
+            </div>
+          </div>
+
+          <div class="action-tabs">
+            <button [class.active]="activeActionTab() === 'appointment'" (click)="activeActionTab.set('appointment')">
+              Hẹn lịch
+            </button>
+            <button [class.active]="activeActionTab() === 'booking'" (click)="activeActionTab.set('booking')">
+              Thuê phòng
+            </button>
+          </div>
+
+          @if (activeActionTab() === 'appointment') {
+            <div class="action-section">
+              @if (canCreateActions()) {
+                <div class="action-card">
+                  <h3>Đặt lịch xem phòng</h3>
+                  <p class="card-sub">Gửi yêu cầu hẹn lịch trực tiếp cho chủ nhà trong cuộc trò chuyện này.</p>
+
+                  @if (appointmentInfo()) { <div class="alert alert-success">{{ appointmentInfo() }}</div> }
+                  @if (appointmentError()) { <div class="alert alert-error">{{ appointmentError() }}</div> }
+
+                  <div class="form-group">
+                    <label class="form-label">Thời gian mong muốn</label>
+                    <input type="datetime-local" class="form-control" [(ngModel)]="appointmentAt" />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Lời nhắn cho chủ nhà</label>
+                    <textarea class="form-control" rows="3" [(ngModel)]="appointmentMessage"
+                              placeholder="Ví dụ: Em muốn xem phòng vào buổi tối sau giờ làm."></textarea>
+                  </div>
+
+                  <button class="btn btn-primary btn-block"
+                          (click)="submitAppointment()"
+                          [disabled]="appointmentSending()">
+                    @if (appointmentSending()) { Đang gửi... } @else { Gửi yêu cầu hẹn lịch }
+                  </button>
+                </div>
+              }
+
+              <div class="action-card">
+                <h3>Lịch liên quan đến phòng này</h3>
+                @if (actionLoading()) {
+                  <div class="muted">Đang tải dữ liệu...</div>
+                } @else if (relatedAppointments().length === 0) {
+                  <div class="muted">Chưa có lịch xem phòng nào.</div>
+                } @else {
+                  <div class="item-list">
+                    @for (appointment of relatedAppointments(); track appointment.id) {
+                      <div class="item-card">
+                        <div class="item-top">
+                          <span class="status-badge status-{{ appointment.status.toLowerCase() }}">
+                            {{ appointmentStatusLabel(appointment.status) }}
+                          </span>
+                          <span class="item-time">{{ appointment.requestedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                        </div>
+                        <div class="item-meta">
+                          @if (auth.isSeeker()) {
+                            Chủ nhà: {{ appointment.landlordName }}
+                          } @else {
+                            Người xem: {{ appointment.seekerName }}
+                          }
+                        </div>
+                        @if (appointment.message) {
+                          <div class="item-note">Lời nhắn: {{ appointment.message }}</div>
+                        }
+                        @if (appointment.landlordNote) {
+                          <div class="item-note note-alt">Ghi chú: {{ appointment.landlordNote }}</div>
+                        }
+                        @if (canCancelAppointment(appointment)) {
+                          <div class="item-actions">
+                            <button class="btn btn-outline btn-sm" (click)="cancelAppointment(appointment)">Huỷ lịch</button>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (activeActionTab() === 'booking') {
+            <div class="action-section">
+              @if (canCreateActions()) {
+                <div class="action-card">
+                  <h3>Tạo yêu cầu thuê phòng</h3>
+                  <p class="card-sub">Điền thông tin thuê ngay trong chat, sau đó có thể thanh toán cọc.</p>
+
+                  @if (bookingInfo()) { <div class="alert alert-success">{{ bookingInfo() }}</div> }
+                  @if (bookingError()) { <div class="alert alert-error">{{ bookingError() }}</div> }
+
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label class="form-label">Họ tên</label>
+                      <input type="text" class="form-control" [(ngModel)]="bookingFullName" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Số điện thoại</label>
+                      <input type="tel" class="form-control" [(ngModel)]="bookingPhone" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Email</label>
+                      <input type="email" class="form-control" [(ngModel)]="bookingEmail" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">CCCD/CMND</label>
+                      <input type="text" class="form-control" [(ngModel)]="bookingIdentityNumber" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Ngày vào ở</label>
+                      <input type="date" class="form-control" [(ngModel)]="bookingMoveInDate" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Thời hạn thuê (tháng)</label>
+                      <input type="number" min="1" class="form-control" [(ngModel)]="bookingLeaseMonths" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Số người ở</label>
+                      <input type="number" min="1" class="form-control" [(ngModel)]="bookingOccupantCount" />
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Ghi chú</label>
+                    <textarea class="form-control" rows="3" [(ngModel)]="bookingNote"
+                              placeholder="Ví dụ: Em muốn vào ở đầu tháng sau."></textarea>
+                  </div>
+
+                  <button class="btn btn-primary btn-block"
+                          (click)="submitBooking()"
+                          [disabled]="bookingSending()">
+                    @if (bookingSending()) { Đang tạo... } @else { Tạo yêu cầu thuê phòng }
+                  </button>
+                </div>
+              }
+
+              <div class="action-card">
+                <h3>Đơn thuê liên quan đến phòng này</h3>
+                @if (actionLoading()) {
+                  <div class="muted">Đang tải dữ liệu...</div>
+                } @else if (relatedBookings().length === 0) {
+                  <div class="muted">Chưa có đơn thuê phòng nào.</div>
+                } @else {
+                  <div class="item-list">
+                    @for (booking of relatedBookings(); track booking.id) {
+                      <div class="item-card">
+                        <div class="item-top">
+                          <span class="status-badge booking-status">
+                            {{ bookingStatusLabel(booking.status) }}
+                          </span>
+                          <span class="payment-badge">
+                            {{ paymentStatusLabel(booking.paymentStatus) }}
+                          </span>
+                        </div>
+                        <div class="item-meta">
+                          {{ booking.moveInDate | date:'dd/MM/yyyy' }} · {{ booking.leaseMonths }} tháng ·
+                          {{ booking.monthlyRent | number:'1.0-0' }}đ/tháng
+                        </div>
+                        <div class="item-note">
+                          Cọc: {{ booking.depositAmount | number:'1.0-0' }}đ
+                        </div>
+                        @if (booking.note) {
+                          <div class="item-note">{{ booking.note }}</div>
+                        }
+                        <div class="item-actions">
+                          @if (canPayBooking(booking)) {
+                            <button class="btn btn-primary btn-sm" (click)="openPayment(booking)">Thanh toán cọc</button>
+                          }
+                          <button class="btn btn-ghost btn-sm" (click)="openBookingDetail(booking.id)">Xem chi tiết</button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </aside>
+      </div>
+    }
+  </div>
+</div>

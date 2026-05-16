@@ -1,0 +1,212 @@
+<div class="profile-page">
+  <div class="container page">
+
+    @if (profile(); as p) {
+      <div class="profile-layout">
+
+        <aside class="profile-sidebar">
+          <div class="avatar-section">
+            <div class="avatar-wrap" (click)="fileInput.click()">
+              <img [src]="avatarPreview() || p.avatarUrl || 'assets/avatar-default.png'"
+                   class="profile-avatar" [alt]="p.fullName" />
+              <div class="avatar-overlay">
+                <span>Thay ảnh</span>
+              </div>
+            </div>
+            <input #fileInput type="file" accept="image/*" hidden (change)="onAvatarSelect($event)" />
+            @if (avatarFile) {
+              <button class="btn btn-primary btn-sm" (click)="uploadAvatar()" [disabled]="avatarUploading()">
+                @if (avatarUploading()) { Đang tải... } @else { Lưu ảnh mới }
+              </button>
+            }
+            <div class="profile-name">{{ p.fullName }}</div>
+            <div class="profile-role role-badge role-{{ p.role.toLowerCase() }}">{{ roleLabel() }}</div>
+            <div class="profile-email">{{ p.email }}</div>
+          </div>
+
+          @if (stats(); as s) {
+            <div class="sidebar-stats">
+              <div class="sstat">
+                <div class="sstat-num">
+                  @if (isLandlordView()) {
+                    {{ s.totalRooms }}
+                  } @else {
+                    {{ s.totalFavorites }}
+                  }
+                </div>
+                <div class="sstat-lbl">
+                  @if (isLandlordView()) {
+                    Phòng đã đăng
+                  } @else {
+                    Phòng yêu thích
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <nav class="profile-nav">
+            <button [class.active]="activeTab() === 'info'" (click)="activeTab.set('info')">
+              👤 Thông tin cá nhân
+            </button>
+            <button [class.active]="activeTab() === 'password'" (click)="activeTab.set('password')">
+              🔐 Đổi mật khẩu
+            </button>
+            <button [class.active]="activeTab() === 'stats'" (click)="activeTab.set('stats')">
+              📊 Thống kê
+            </button>
+          </nav>
+        </aside>
+
+        <div class="profile-content">
+
+          @if (activeTab() === 'info') {
+            <div class="content-card">
+              <h2 class="card-title">Thông tin cá nhân</h2>
+
+              @if (infoMsg()) { <div class="alert alert-success">{{ infoMsg() }}</div> }
+              @if (infoError()) { <div class="alert alert-error">{{ infoError() }}</div> }
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Họ và tên *</label>
+                  <input type="text" class="form-control" [(ngModel)]="fullName" placeholder="Nguyễn Văn A" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control" [value]="p.email" disabled title="Email không thể thay đổi" />
+                  <span class="form-hint">Email không thể thay đổi</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Số điện thoại</label>
+                  <input type="tel" class="form-control" [(ngModel)]="phone" placeholder="0912345678" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Vai trò</label>
+                  <input type="text" class="form-control" [value]="roleLabel()" disabled />
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn btn-primary" (click)="saveProfile()" [disabled]="saving()">
+                  @if (saving()) { Đang lưu... } @else { Lưu thay đổi }
+                </button>
+              </div>
+            </div>
+          }
+
+          @if (activeTab() === 'password') {
+            <div class="content-card">
+              <h2 class="card-title">Đổi mật khẩu</h2>
+
+              @if (pwdMsg()) { <div class="alert alert-success">{{ pwdMsg() }}</div> }
+              @if (pwdError()) { <div class="alert alert-error">{{ pwdError() }}</div> }
+
+              <div class="form-group">
+                <label class="form-label">Mật khẩu hiện tại *</label>
+                <div class="password-wrap">
+                  <input [type]="showCurrent() ? 'text' : 'password'" class="form-control"
+                         [(ngModel)]="currentPwd" placeholder="••••••••" />
+                  <button type="button" class="pwd-toggle" (click)="showCurrent.update(v => !v)">
+                    {{ showCurrent() ? '🙈' : '👁️' }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Mật khẩu mới *</label>
+                <div class="password-wrap">
+                  <input [type]="showNew() ? 'text' : 'password'" class="form-control"
+                         [(ngModel)]="newPwd" placeholder="Ít nhất 8 ký tự" />
+                  <button type="button" class="pwd-toggle" (click)="showNew.update(v => !v)">
+                    {{ showNew() ? '🙈' : '👁️' }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Xác nhận mật khẩu mới *</label>
+                <input type="password" class="form-control" [(ngModel)]="confirmPwd"
+                       placeholder="Nhập lại mật khẩu mới" />
+                @if (confirmPwd && newPwd !== confirmPwd) {
+                  <span class="form-error">Mật khẩu không khớp</span>
+                }
+              </div>
+
+              <div class="pwd-tips">
+                <p class="form-hint">Mật khẩu nên có ít nhất 8 ký tự, bao gồm chữ hoa, số và ký tự đặc biệt.</p>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn btn-primary" (click)="changePassword()" [disabled]="pwdSaving()">
+                  @if (pwdSaving()) { Đang lưu... } @else { Đổi mật khẩu }
+                </button>
+              </div>
+            </div>
+          }
+
+          @if (activeTab() === 'stats') {
+            <div class="content-card">
+              <h2 class="card-title">Thống kê hoạt động</h2>
+
+              @if (stats(); as s) {
+                <div class="stats-grid">
+                  @if (isLandlordView()) {
+                    <div class="stat-box">
+                      <div class="stat-icon">🏠</div>
+                      <div class="stat-num">{{ s.totalRooms }}</div>
+                      <div class="stat-lbl">Phòng đã đăng</div>
+                    </div>
+                    <div class="stat-box">
+                      <div class="stat-icon">👀</div>
+                      <div class="stat-num">{{ s.totalViews }}</div>
+                      <div class="stat-lbl">Tổng lượt xem</div>
+                    </div>
+                    <div class="stat-box">
+                      <div class="stat-icon">📄</div>
+                      <div class="stat-num">{{ s.totalAppointments }}</div>
+                      <div class="stat-lbl">Lịch xem phòng</div>
+                    </div>
+                    <div class="stat-box">
+                      <div class="stat-icon">🧾</div>
+                      <div class="stat-num">{{ s.totalBookings }}</div>
+                      <div class="stat-lbl">Đơn thuê phòng</div>
+                    </div>
+                  } @else {
+                    <div class="stat-box">
+                      <div class="stat-icon">❤️</div>
+                      <div class="stat-num">{{ s.totalFavorites }}</div>
+                      <div class="stat-lbl">Phòng yêu thích</div>
+                    </div>
+                    <div class="stat-box">
+                      <div class="stat-icon">📄</div>
+                      <div class="stat-num">{{ s.totalAppointments }}</div>
+                      <div class="stat-lbl">Lịch xem phòng</div>
+                    </div>
+                    <div class="stat-box">
+                      <div class="stat-icon">🧾</div>
+                      <div class="stat-num">{{ s.totalBookings }}</div>
+                      <div class="stat-lbl">Đơn thuê phòng</div>
+                    </div>
+                    <div class="stat-box">
+                      <div class="stat-icon">📆</div>
+                      <div class="stat-num">{{ p.createdAt | date:'MM/yyyy' : undefined : 'vi' }}</div>
+                      <div class="stat-lbl">Tham gia từ</div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+        </div>
+      </div>
+    } @else {
+      <div class="profile-layout">
+        <div class="skeleton" style="width:260px;height:400px;border-radius:12px"></div>
+        <div class="skeleton" style="flex:1;height:400px;border-radius:12px"></div>
+      </div>
+    }
+
+  </div>
+</div>

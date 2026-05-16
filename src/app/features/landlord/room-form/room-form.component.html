@@ -1,0 +1,248 @@
+<div class="container page">
+  <div class="form-page">
+    <div class="form-page-header">
+      <button class="btn btn-ghost" [routerLink]="'/landlord'">← Quay lại</button>
+      <h1>{{ isEditMode ? 'Chỉnh sửa phòng' : 'Đăng phòng mới' }}</h1>
+    </div>
+
+    @if (error()) { <div class="alert alert-error">{{ error() }}</div> }
+    @if (success()) { <div class="alert alert-success">{{ success() }}</div> }
+
+    <form (ngSubmit)="onSubmit()" #f="ngForm">
+      <div class="form-sections">
+        <div class="form-section">
+          <h2 class="section-heading">Thông tin cơ bản</h2>
+
+          <div class="form-group">
+            <label class="form-label">Mô tả tự do để AI điền form</label>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap">
+              <p class="form-hint" style="margin:0">
+                Nhập mô tả tự nhiên như khi nhắn tin. AI sẽ tự điền các trường nhận diện được vào form bên dưới.
+              </p>
+              <button type="button" class="btn btn-outline btn-sm" (click)="fillFormWithAi()" [disabled]="aiLoading()">
+                @if (aiLoading()) {
+                  <span class="spinner"></span> Đang phân tích...
+                } @else {
+                  Điền form bằng AI
+                }
+              </button>
+            </div>
+            <textarea class="form-control"
+                      [(ngModel)]="aiDraft"
+                      name="aiDraft"
+                      rows="5"
+                      placeholder="Ví dụ: Phòng studio 28m2 ở Cầu Giấy, giá 4.2 triệu, có điều hòa, nóng lạnh, máy giặt, ở tối đa 2 người, phù hợp sinh viên hoặc người đi làm..."></textarea>
+            @if (aiError()) {
+              <div class="form-hint" style="color:#b42318;margin-top:8px">{{ aiError() }}</div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tiêu đề tin đăng *</label>
+            <input type="text" class="form-control" [(ngModel)]="form.title" name="title"
+                   required placeholder="Ví dụ: Phòng trọ rộng thoáng Cầu Giấy, gần ĐH" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Loại phòng *</label>
+              <select class="form-control" [(ngModel)]="form.roomType" name="roomType" required>
+                @for (rt of roomTypes | keyvalue; track rt.key) {
+                  <option [value]="rt.key">{{ rt.value }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Đối tượng</label>
+              <select class="form-control" [(ngModel)]="form.genderRequirement" name="genderRequirement">
+                <option value="ALL">Tất cả</option>
+                <option value="MALE">Nam</option>
+                <option value="FEMALE">Nữ</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Số người tối đa</label>
+              <input type="number" class="form-control" [(ngModel)]="form.maxPeople"
+                     name="maxPeople" min="1" max="10" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mô tả chi tiết</label>
+            <textarea class="form-control" [(ngModel)]="form.description" name="description"
+                      rows="5" placeholder="Mô tả chi tiết về phòng, môi trường, vị trí..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2 class="section-heading">Giá cả và diện tích</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Giá thuê (VNĐ/tháng) *</label>
+              <input type="number" class="form-control" [(ngModel)]="form.price"
+                     name="price" required min="0" step="100000" placeholder="3500000" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Diện tích (m²) *</label>
+              <input type="number" class="form-control" [(ngModel)]="form.area"
+                     name="area" required min="5" step="0.5" placeholder="20" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Giá điện (VNĐ/kWh)</label>
+              <input type="number" class="form-control" [(ngModel)]="form.electricPrice"
+                     name="electricPrice" min="0" step="100" placeholder="3500" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Giá nước (VNĐ/m³)</label>
+              <input type="number" class="form-control" [(ngModel)]="form.waterPrice"
+                     name="waterPrice" min="0" step="5000" placeholder="80000" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phí khác (VNĐ/tháng)</label>
+              <input type="number" class="form-control" [(ngModel)]="form.otherFees"
+                     name="otherFees" min="0" step="50000" placeholder="0" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-checkbox">
+              <input type="checkbox" [(ngModel)]="form.isFurnished" name="isFurnished" />
+              <span>Phòng có nội thất đầy đủ</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2 class="section-heading">Vị trí</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Thành phố *</label>
+              <input type="text" class="form-control" [(ngModel)]="form.city"
+                     name="city" required placeholder="Hà Nội" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Quận / Huyện *</label>
+              <select class="form-control" [(ngModel)]="form.district" name="district" required>
+                <option value="">Chọn quận/huyện</option>
+                @for (d of districts; track d) { <option [value]="d">{{ d }}</option> }
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phường / Xã</label>
+              <input type="text" class="form-control" [(ngModel)]="form.ward"
+                     name="ward" placeholder="Dịch Vọng" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Địa chỉ cụ thể *</label>
+            <input type="text" class="form-control" [(ngModel)]="form.address"
+                   name="address" required placeholder="Số nhà, tên đường, ngõ..." />
+          </div>
+
+          <div class="location-picker">
+            <div class="location-picker-header">
+              <label class="form-label">Đánh dấu vị trí trên bản đồ</label>
+              @if (coordDisplay()) {
+                <div class="coord-badge">
+                  <span>📍 {{ coordDisplay() }}</span>
+                  <button type="button" class="coord-clear" (click)="clearLocation()" title="Xoá vị trí">✕</button>
+                </div>
+              }
+            </div>
+            <p class="form-hint" style="margin-bottom:10px">
+              Tìm kiếm địa chỉ bên dưới hoặc click thẳng lên bản đồ để đặt pin.
+              Kéo pin để điều chỉnh vị trí chính xác hơn.
+            </p>
+
+            <div class="geo-search-wrap">
+              <div class="geo-input-wrap">
+                <input type="text" class="form-control geo-input"
+                       [value]="searchQuery()"
+                       (input)="onSearchInput($any($event.target).value)"
+                       (focus)="showResults.set(searchResults().length > 0)"
+                       (blur)="$any($event).relatedTarget?.closest('.geo-results') || showResults.set(false)"
+                       placeholder="Tìm địa chỉ, ví dụ: 15 Ngõ 7 Cầu Giấy Hà Nội..." />
+                @if (searching()) {
+                  <div class="geo-spinner"></div>
+                }
+              </div>
+
+              @if (showResults() && searchResults().length > 0) {
+                <div class="geo-results">
+                  @for (r of searchResults(); track r.lat + r.lon) {
+                    <button type="button" class="geo-result-item" (mousedown)="selectResult(r)">
+                      <span class="geo-icon">📍</span>
+                      <span class="geo-text">{{ r.display_name }}</span>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="location-map" #locationMap></div>
+            <p class="form-hint" style="margin-top:6px">
+              @if (!form.latitude) {
+                Chưa có vị trí - tìm địa chỉ hoặc click lên bản đồ để đặt pin.
+              } @else {
+                Vị trí đã được xác định. Kéo pin để điều chỉnh nếu cần.
+              }
+            </p>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2 class="section-heading">Tiện ích</h2>
+          <div class="amenities-check-grid">
+            @for (a of amenitiesList; track a) {
+              <label class="amenity-check">
+                <input type="checkbox" [checked]="form.amenities.includes(a)"
+                       (change)="toggleAmenity(a)" />
+                <span>{{ a }}</span>
+              </label>
+            }
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2 class="section-heading">Hình ảnh</h2>
+          <div class="upload-area" (click)="fileInput.click()" (dragover)="$event.preventDefault()"
+               (drop)="onDrop($event)">
+            <div class="upload-icon">📸</div>
+            <p>Kéo thả hoặc <strong>click để chọn ảnh</strong></p>
+            <p class="form-hint">Tối đa 10 ảnh, mỗi ảnh không quá 10MB</p>
+            <input #fileInput type="file" accept="image/*" multiple hidden (change)="onFileSelect($event)" />
+          </div>
+
+          @if (previewImages().length > 0) {
+            <div class="preview-grid">
+              @for (img of previewImages(); track img; let i = $index) {
+                <div class="preview-item">
+                  <img [src]="img" />
+                  <button class="remove-img" (click)="removeImage(i)">✕</button>
+                  @if (i === 0) { <span class="primary-badge">Ảnh chính</span> }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" [routerLink]="'/landlord'">Huỷ</button>
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="loading()">
+          @if (loading()) {
+            <span class="spinner"></span> Đang lưu...
+          } @else {
+            {{ isEditMode ? 'Cập nhật phòng' : 'Đăng phòng' }}
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
