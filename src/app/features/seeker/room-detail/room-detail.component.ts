@@ -13,6 +13,7 @@ import { ReviewService } from '../../../core/services/review.service';
 import { ViewingAppointmentService } from '../../../core/services/viewing-appointment.service';
 import { BookingService } from '../../../core/services/booking.service';
 import { Room, GENDER_LABELS, Review } from '../../../core/models';
+import { environment } from '../../../../environments/environment';
 
 type ReviewUploadPreview = {
   file: File;
@@ -29,6 +30,7 @@ type ReviewUploadPreview = {
   styleUrls: ['./room-detail.component.scss']
 })
 export class RoomDetailComponent implements OnInit {
+  private readonly apiUrl        = environment.apiUrl;
   private readonly route         = inject(ActivatedRoute);
   private readonly router        = inject(Router);
   private readonly roomService   = inject(RoomService);
@@ -325,7 +327,7 @@ export class RoomDetailComponent implements OnInit {
       return;
     }
     this.reportSending.set(true);
-    this.http.post<any>(`/api/rooms/${r.id}/report`, { reason }).subscribe({
+    this.http.post<any>(`${this.apiUrl}/api/rooms/${r.id}/report`, { reason }).subscribe({
       next:  () => { this.reportSending.set(false); this.reportDone.set(true); },
       error: e => { this.reportError.set(e.error?.message ?? 'Gửi thất bại'); this.reportSending.set(false); }
     });
