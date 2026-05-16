@@ -2,10 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse, Review } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ReviewService {
-    private readonly API = '/api/reviews';
+    private readonly API = `${environment.apiUrl}/api/reviews`;
     private readonly http = inject(HttpClient);
 
     getRoomReviews(roomId: number): Observable<ApiResponse<Review[]>> {

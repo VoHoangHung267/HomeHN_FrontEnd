@@ -2,10 +2,11 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse, NotificationItem } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  private readonly API  = '/api/notifications';
+  private readonly API  = `${environment.apiUrl}/api/notifications`;
   private readonly http = inject(HttpClient);
 
   readonly unreadCount = signal(0);

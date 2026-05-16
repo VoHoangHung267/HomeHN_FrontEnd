@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse, Page, Room, User } from '../models';
+import { environment } from '../../../environments/environment';
 
 export interface StatsResponse {
   totalUsers: number;
@@ -36,7 +37,7 @@ export interface AdminRoomFilter {
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
-  private readonly API  = '/api/admin';
+  private readonly API  = `${environment.apiUrl}/api/admin`;
   private readonly http = inject(HttpClient);
 
   getStats():         Observable<ApiResponse<StatsResponse>>   { return this.http.get<ApiResponse<StatsResponse>>(`${this.API}/stats`); }

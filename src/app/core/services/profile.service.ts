@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse, User } from '../models';
+import { environment } from '../../../environments/environment';
 
 export interface ProfileStats {
   totalFavorites: number;
@@ -23,7 +24,7 @@ export interface ChangePasswordRequest {
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
-  private readonly API  = '/api/profile';
+  private readonly API  = `${environment.apiUrl}/api/profile`;
   private readonly http = inject(HttpClient);
 
   getProfile(): Observable<ApiResponse<User>> {

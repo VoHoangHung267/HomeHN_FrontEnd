@@ -2,10 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse, RentalBooking, RentalBookingStatus } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class BookingService {
-  private readonly API = '/api/bookings';
+  private readonly API = `${environment.apiUrl}/api/bookings`;
   private readonly http = inject(HttpClient);
 
   create(roomId: number, payload: {

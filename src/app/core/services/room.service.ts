@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse, GenderRequirement, Page, Room, RoomFilter, RoomFormData, RoomType } from '../models';
+import { environment } from '../../../environments/environment';
 
 export interface GenerateRoomDescriptionPayload {
   title?: string;
@@ -71,7 +72,7 @@ export interface AiSearchResult {
 
 @Injectable({ providedIn: 'root' })
 export class RoomService {
-  private readonly API = '/api/rooms';
+  private readonly API = `${environment.apiUrl}/api/rooms`;
   private readonly http = inject(HttpClient);
 
   searchRooms(filter: RoomFilter): Observable<ApiResponse<Page<Room>>> {

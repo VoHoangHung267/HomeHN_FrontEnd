@@ -3,10 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { ApiResponse, AuthResponse, User } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly API = '/api/auth';
+  private readonly API = `${environment.apiUrl}/api/auth`;
 
   // Angular 21: Signals cho reactive state — không cần BehaviorSubject
   private readonly _user  = signal<User | null>(this.loadStoredUser());

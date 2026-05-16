@@ -5,6 +5,7 @@ import { Client, IMessage } from '@stomp/stompjs';
 import { ApiResponse, ChatRoom, Message } from '../models';
 import { AuthService } from './auth.service';
 import SockJS from 'sockjs-client';
+import { environment } from '../../../environments/environment';
 
 export interface ChatAssistantResult {
   answer: string;
@@ -13,7 +14,8 @@ export interface ChatAssistantResult {
 
 @Injectable({ providedIn: 'root' })
 export class ChatService {
-  private readonly API = '/api/chat';
+  private readonly API = `${environment.apiUrl}/api/chat`;
+  private readonly WS_URL = `${environment.apiUrl}/api/ws`;
 
   readonly connected = signal(false);
   readonly unreadTotal = signal(0);
@@ -28,7 +30,7 @@ export class ChatService {
     if (this.stompClient?.active) return;
 
     this.stompClient = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/api/ws') as any,
+      webSocketFactory: () => new SockJS(this.WS_URL) as any,
       connectHeaders: { Authorization: `Bearer ${this.auth.token()}` },
 
       onConnect: () => {
