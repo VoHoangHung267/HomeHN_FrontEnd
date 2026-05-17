@@ -25,6 +25,21 @@ declare const L: any;
   styleUrls: ['./room-form.component.scss']
 })
 export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
+  private static readonly LIMITS = {
+    titleMaxLength: 255,
+    descriptionMaxLength: 5000,
+    addressMaxLength: 255,
+    wardMaxLength: 255,
+    districtMaxLength: 255,
+    cityMaxLength: 255,
+    priceMax: 9_999_999_999.99,
+    areaMin: 5,
+    areaMax: 999_999.99,
+    feeMax: 99_999_999.99,
+    maxPeopleMin: 1,
+    maxPeopleMax: 10
+  } as const;
+
   @ViewChild('locationMap') locationMapEl!: ElementRef<HTMLDivElement>;
 
   private readonly roomService = inject(RoomService);
@@ -69,6 +84,7 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly roomTypes = ROOM_TYPE_LABELS;
   readonly districts = DISTRICTS_HN;
   readonly amenitiesList = AMENITIES_LIST;
+  readonly limits = RoomFormComponent.LIMITS;
 
   private map: any = null;
   private marker: any = null;
@@ -355,8 +371,9 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onSubmit(): void {
-    if (!this.form.title || !this.form.price || !this.form.area || !this.form.district || !this.form.address) {
-      this.error.set('Vui lòng điền đầy đủ thông tin bắt buộc (*)');
+    const validationError = this.validateForm();
+    if (validationError) {
+      this.error.set(validationError);
       return;
     }
     this.loading.set(true);
@@ -380,10 +397,78 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       },
       error: e => {
-        this.error.set(e.error?.message ?? 'Đã có lỗi xảy ra');
+        this.error.set(this.resolveErrorMessage(e));
         this.loading.set(false);
       }
     });
+  }
+
+  private validateForm(): string | null {
+    if (!this.form.title?.trim() || this.form.price == null || this.form.area == null
+      || !this.form.district?.trim() || !this.form.address?.trim() || !this.form.city?.trim()) {
+      return 'Vui lòng điền đầy đủ thông tin bắt buộc (*)';
+    }
+
+    if (this.form.title.trim().length > this.limits.titleMaxLength) {
+      return `Tiêu đề không được vượt quá ${this.limits.titleMaxLength} ký tự`;
+    }
+
+    if ((this.form.description ?? '').trim().length > this.limits.descriptionMaxLength) {
+      return `Mô tả không được vượt quá ${this.limits.descriptionMaxLength} ký tự`;
+    }
+
+    if (this.form.address.trim().length > this.limits.addressMaxLength) {
+      return `Địa chỉ không được vượt quá ${this.limits.addressMaxLength} ký tự`;
+    }
+
+    if ((this.form.ward ?? '').trim().length > this.limits.wardMaxLength) {
+      return `Phường/xã không được vượt quá ${this.limits.wardMaxLength} ký tự`;
+    }
+
+    if (this.form.district.trim().length > this.limits.districtMaxLength) {
+      return `Quận/huyện không được vượt quá ${this.limits.districtMaxLength} ký tự`;
+    }
+
+    if (this.form.city.trim().length > this.limits.cityMaxLength) {
+      return `Thành phố không được vượt quá ${this.limits.cityMaxLength} ký tự`;
+    }
+
+    if (this.form.price <= 0 || this.form.price > this.limits.priceMax) {
+      return `Giá thuê phải lớn hơn 0 và không vượt quá ${this.limits.priceMax.toLocaleString('vi-VN')}`;
+    }
+
+    if (this.form.area < this.limits.areaMin || this.form.area > this.limits.areaMax) {
+      return `Diện tích phải từ ${this.limits.areaMin} đến ${this.limits.areaMax.toLocaleString('vi-VN')} m²`;
+    }
+
+    if (this.form.electricPrice < 0 || this.form.electricPrice > this.limits.feeMax) {
+      return `Giá điện phải từ 0 đến ${this.limits.feeMax.toLocaleString('vi-VN')}`;
+    }
+
+    if (this.form.waterPrice < 0 || this.form.waterPrice > this.limits.feeMax) {
+      return `Giá nước phải từ 0 đến ${this.limits.feeMax.toLocaleString('vi-VN')}`;
+    }
+
+    if (this.form.otherFees < 0 || this.form.otherFees > this.limits.feeMax) {
+      return `Phí khác phải từ 0 đến ${this.limits.feeMax.toLocaleString('vi-VN')}`;
+    }
+
+    if (this.form.maxPeople < this.limits.maxPeopleMin || this.form.maxPeople > this.limits.maxPeopleMax) {
+      return `Số người tối đa phải từ ${this.limits.maxPeopleMin} đến ${this.limits.maxPeopleMax}`;
+    }
+
+    return null;
+  }
+
+  private resolveErrorMessage(error: any): string {
+    const fieldErrors = error?.error?.data;
+    if (fieldErrors && typeof fieldErrors === 'object') {
+      const firstFieldError = Object.values(fieldErrors).find(value => typeof value === 'string');
+      if (typeof firstFieldError === 'string' && firstFieldError.trim()) {
+        return firstFieldError;
+      }
+    }
+    return error?.error?.message ?? 'Đã có lỗi xảy ra. Vui lòng thử lại.';
   }
 
   private finish(): void {

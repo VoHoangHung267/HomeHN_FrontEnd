@@ -30,6 +30,7 @@
             <textarea class="form-control"
                       [(ngModel)]="aiDraft"
                       name="aiDraft"
+                      [maxlength]="limits.descriptionMaxLength"
                       rows="5"
                       placeholder="Ví dụ: Phòng studio 28m2 ở Cầu Giấy, giá 4.2 triệu, có điều hòa, nóng lạnh, máy giặt, ở tối đa 2 người, phù hợp sinh viên hoặc người đi làm..."></textarea>
             @if (aiError()) {
@@ -40,6 +41,7 @@
           <div class="form-group">
             <label class="form-label">Tiêu đề tin đăng *</label>
             <input type="text" class="form-control" [(ngModel)]="form.title" name="title"
+                   [maxlength]="limits.titleMaxLength"
                    required placeholder="Ví dụ: Phòng trọ rộng thoáng Cầu Giấy, gần ĐH" />
           </div>
 
@@ -63,13 +65,14 @@
             <div class="form-group">
               <label class="form-label">Số người tối đa</label>
               <input type="number" class="form-control" [(ngModel)]="form.maxPeople"
-                     name="maxPeople" min="1" max="10" />
+                     name="maxPeople" [min]="limits.maxPeopleMin" [max]="limits.maxPeopleMax" />
             </div>
           </div>
 
           <div class="form-group">
             <label class="form-label">Mô tả chi tiết</label>
             <textarea class="form-control" [(ngModel)]="form.description" name="description"
+                      [maxlength]="limits.descriptionMaxLength"
                       rows="5" placeholder="Mô tả chi tiết về phòng, môi trường, vị trí..."></textarea>
           </div>
         </div>
@@ -81,12 +84,12 @@
             <div class="form-group">
               <label class="form-label">Giá thuê (VNĐ/tháng) *</label>
               <input type="number" class="form-control" [(ngModel)]="form.price"
-                     name="price" required min="0" step="100000" placeholder="3500000" />
+                     name="price" required min="0.01" [max]="limits.priceMax" step="100000" placeholder="3500000" />
             </div>
             <div class="form-group">
               <label class="form-label">Diện tích (m²) *</label>
               <input type="number" class="form-control" [(ngModel)]="form.area"
-                     name="area" required min="5" step="0.5" placeholder="20" />
+                     name="area" required [min]="limits.areaMin" [max]="limits.areaMax" step="0.5" placeholder="20" />
             </div>
           </div>
 
@@ -94,17 +97,17 @@
             <div class="form-group">
               <label class="form-label">Giá điện (VNĐ/kWh)</label>
               <input type="number" class="form-control" [(ngModel)]="form.electricPrice"
-                     name="electricPrice" min="0" step="100" placeholder="3500" />
+                     name="electricPrice" min="0" [max]="limits.feeMax" step="100" placeholder="3500" />
             </div>
             <div class="form-group">
               <label class="form-label">Giá nước (VNĐ/m³)</label>
               <input type="number" class="form-control" [(ngModel)]="form.waterPrice"
-                     name="waterPrice" min="0" step="5000" placeholder="80000" />
+                     name="waterPrice" min="0" [max]="limits.feeMax" step="5000" placeholder="80000" />
             </div>
             <div class="form-group">
               <label class="form-label">Phí khác (VNĐ/tháng)</label>
               <input type="number" class="form-control" [(ngModel)]="form.otherFees"
-                     name="otherFees" min="0" step="50000" placeholder="0" />
+                     name="otherFees" min="0" [max]="limits.feeMax" step="50000" placeholder="0" />
             </div>
           </div>
 
@@ -123,6 +126,7 @@
             <div class="form-group">
               <label class="form-label">Thành phố *</label>
               <input type="text" class="form-control" [(ngModel)]="form.city"
+                     [maxlength]="limits.cityMaxLength"
                      name="city" required placeholder="Hà Nội" />
             </div>
             <div class="form-group">
@@ -135,6 +139,7 @@
             <div class="form-group">
               <label class="form-label">Phường / Xã</label>
               <input type="text" class="form-control" [(ngModel)]="form.ward"
+                     [maxlength]="limits.wardMaxLength"
                      name="ward" placeholder="Dịch Vọng" />
             </div>
           </div>
@@ -142,6 +147,7 @@
           <div class="form-group">
             <label class="form-label">Địa chỉ cụ thể *</label>
             <input type="text" class="form-control" [(ngModel)]="form.address"
+                   [maxlength]="limits.addressMaxLength"
                    name="address" required placeholder="Số nhà, tên đường, ngõ..." />
           </div>
 
