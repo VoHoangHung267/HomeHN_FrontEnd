@@ -105,12 +105,14 @@
   right: 98px;
   bottom: 24px;
   width: min(390px, calc(100vw - 32px));
+  max-width: calc(100vw - 110px);
   background: #fff;
   border: 1px solid #dbeafe;
   border-radius: 20px;
   box-shadow: 0 24px 48px rgba(15, 23, 42, .18);
   z-index: 1599;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .global-assistant-header {
@@ -148,6 +150,7 @@
   padding: 16px 18px 18px;
   display: grid;
   gap: 12px;
+  min-width: 0;
 }
 
 .assistant-thread {
@@ -157,12 +160,14 @@
   flex-direction: column;
   gap: 12px;
   padding-right: 4px;
+  min-width: 0;
 }
 
 .assistant-msg-row {
   display: flex;
   gap: 8px;
   align-items: flex-end;
+  min-width: 0;
 
   &.mine {
     flex-direction: row-reverse;
@@ -185,10 +190,14 @@
 
 .assistant-bubble {
   max-width: 82%;
+  min-width: 0;
   padding: 12px 14px;
   border-radius: 18px 18px 18px 6px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  box-sizing: border-box;
 
   &.mine {
     background: #2563eb;
@@ -202,12 +211,16 @@
   font-size: 14px;
   line-height: 1.6;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .assistant-note {
   margin-top: 8px;
   font-size: 12px;
   color: #64748b;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .assistant-bubble.mine .assistant-note {
@@ -316,14 +329,26 @@
 .assistant-input-wrap {
   display: grid;
   gap: 10px;
+  min-width: 0;
 }
 
 .assistant-input {
   resize: none;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .assistant-send-btn {
   justify-self: end;
+}
+
+.alert.alert-error {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: pre-wrap;
+  box-sizing: border-box;
 }
 
 @keyframes blink {

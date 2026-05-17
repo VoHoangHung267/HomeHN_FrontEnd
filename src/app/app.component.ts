@@ -1,15 +1,15 @@
-import { Component, OnInit, ChangeDetectionStrategy, DestroyRef, effect, inject, signal } from '@angular/core';
-import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
+import { NotificationItem, Room } from './core/models';
+import { AiAssistantService, GlobalAssistantResult } from './core/services/ai-assistant.service';
 import { AuthService } from './core/services/auth.service';
 import { ChatService } from './core/services/chat.service';
 import { NotificationService } from './core/services/notification.service';
-import { AiAssistantService, GlobalAssistantResult } from './core/services/ai-assistant.service';
 import { AiSearchResult, RoomService } from './core/services/room.service';
-import { NotificationItem, Room } from './core/models';
 
 type AssistantMessage = {
   role: 'assistant' | 'user';
@@ -51,6 +51,7 @@ export class AppComponent implements OnInit {
       note: 'Nếu bạn mô tả nhu cầu tìm phòng, tôi có thể hiện luôn các phòng phù hợp để bạn bấm vào xem.'
     }
   ]);
+
   private wasLoggedIn = false;
 
   constructor() {
@@ -97,6 +98,10 @@ export class AppComponent implements OnInit {
   }
 
   askAssistant(): void {
+    if (this.assistantLoading()) {
+      return;
+    }
+
     const question = this.assistantQuestion.trim();
     if (!question) {
       this.assistantError.set('Vui lòng nhập câu hỏi cho trợ lý AI.');
@@ -108,9 +113,13 @@ export class AppComponent implements OnInit {
     this.assistantLoading.set(true);
     this.assistantError.set('');
 
+    const roomSuggestion$ = this.hasSearchKeyword(question)
+      ? this.tryGetSuggestedRooms(question)
+      : of({ rooms: [] as Room[], note: '' });
+
     forkJoin({
       assistant: this.aiAssistant.ask(question),
-      roomSuggestion: this.tryGetSuggestedRooms(question)
+      roomSuggestion: roomSuggestion$
     }).subscribe({
       next: ({ assistant, roomSuggestion }) => {
         this.assistantMessages.update(list => [
@@ -120,7 +129,7 @@ export class AppComponent implements OnInit {
         this.assistantLoading.set(false);
       },
       error: e => {
-        this.assistantError.set(e.error?.message ?? 'Không thể lấy phản hồi AI lúc này.');
+        this.assistantError.set(this.formatAssistantError(e.error?.message));
         this.assistantLoading.set(false);
       }
     });
@@ -155,51 +164,50 @@ export class AppComponent implements OnInit {
 
   markAllRead(): void {
     this.notifService.readAll().subscribe(() => {
-      this.notifications.update(list => list.map(n => ({ ...n, isRead: true })));
+      this.notifications.update(list => list.map(item => ({ ...item, isRead: true })));
       this.notifService.unreadCount.set(0);
     });
   }
 
-  openNotif(n: NotificationItem): void {
-    if (!n.isRead) {
-      this.notifService.readOne(n.id).subscribe();
-      this.notifications.update(list =>
-        list.map(x => x.id === n.id ? { ...x, isRead: true } : x)
-      );
-      this.notifService.unreadCount.update(c => Math.max(0, c - 1));
+  openNotif(item: NotificationItem): void {
+    if (!item.isRead) {
+      this.notifService.readOne(item.id).subscribe();
+      this.notifications.update(list => list.map(x => x.id === item.id ? { ...x, isRead: true } : x));
+      this.notifService.unreadCount.update(count => Math.max(0, count - 1));
     }
 
-    if (n.actionUrl) {
-      this.router.navigateByUrl(n.actionUrl);
-    } else if (n.type === 'REVIEW_RECEIVED' && n.relatedId) {
-      this.router.navigate(['/rooms', n.relatedId]);
-    } else if (n.type === 'ADMIN_REPORT_RECEIVED') {
+    if (item.actionUrl) {
+      this.router.navigateByUrl(item.actionUrl);
+    } else if (item.type === 'REVIEW_RECEIVED' && item.relatedId) {
+      this.router.navigate(['/rooms', item.relatedId]);
+    } else if (item.type === 'ADMIN_REPORT_RECEIVED') {
       this.router.navigate(['/admin/room-management'], {
-        queryParams: { tab: 'reports', reportId: n.relatedId }
+        queryParams: { tab: 'reports', reportId: item.relatedId }
       });
-    } else if (n.type === 'REPORT_RECEIVED') {
+    } else if (item.type === 'REPORT_RECEIVED') {
       if (this.auth.isAdmin()) {
         this.router.navigate(['/admin/room-management'], {
-          queryParams: { tab: 'reports', reportId: n.relatedId }
+          queryParams: { tab: 'reports', reportId: item.relatedId }
         });
       } else {
         this.router.navigate(['/landlord']);
       }
-    } else if (n.type === 'REPORT_RESOLVED' && n.relatedId) {
-      this.router.navigate(['/rooms', n.relatedId]);
-    } else if ((n.type === 'ROOM_APPROVED' || n.type === 'ROOM_REJECTED') && n.relatedId) {
-      this.router.navigate(['/rooms', n.relatedId]);
-    } else if (n.type === 'APPOINTMENT_REQUESTED' || n.type === 'APPOINTMENT_CANCELLED') {
+    } else if (item.type === 'REPORT_RESOLVED' && item.relatedId) {
+      this.router.navigate(['/rooms', item.relatedId]);
+    } else if ((item.type === 'ROOM_APPROVED' || item.type === 'ROOM_REJECTED') && item.relatedId) {
+      this.router.navigate(['/rooms', item.relatedId]);
+    } else if (item.type === 'APPOINTMENT_REQUESTED' || item.type === 'APPOINTMENT_CANCELLED') {
       this.router.navigate(['/landlord']);
-    } else if (n.type === 'APPOINTMENT_UPDATED') {
+    } else if (item.type === 'APPOINTMENT_UPDATED') {
       this.router.navigate([this.auth.isSeeker() ? '/appointments' : '/landlord']);
     }
+
     this.showNotif.set(false);
   }
 
   notifIcon(type: string): string {
     const icons: Record<string, string> = {
-      REVIEW_RECEIVED: '⭐',
+      REVIEW_RECEIVED: '★',
       REPORT_RECEIVED: '⚑',
       REPORT_RESOLVED: '✅',
       ADMIN_REPORT_RECEIVED: '⚑',
@@ -217,12 +225,13 @@ export class AppComponent implements OnInit {
 
   private loadNotifications(): void {
     this.notifService.fetchUnreadCount();
-    this.notifService.getAll().subscribe(r => this.notifications.set(r.data));
+    this.notifService.getAll().subscribe(response => this.notifications.set(response.data));
   }
 
   private mapAssistantResponse(data: GlobalAssistantResult, rooms: Room[], roomNote?: string): AssistantMessage {
     const baseNote = data.note?.trim() || undefined;
     const mergedNote = roomNote ? [baseNote, roomNote].filter(Boolean).join(' ') : baseNote;
+
     return {
       role: 'assistant',
       text: data.answer?.trim() || 'Tôi chưa có câu trả lời phù hợp.',
@@ -235,7 +244,7 @@ export class AppComponent implements OnInit {
 
   private tryGetSuggestedRooms(question: string) {
     return this.roomService.parseAiSearch({ query: question }).pipe(
-      map(r => r.data),
+      map(response => response.data),
       catchError(() => of(null)),
       map(parsed => this.hasSearchIntent(question, parsed) ? parsed : null),
       map(parsed => parsed ? this.normalizeSearchFilter(parsed) : null),
@@ -243,15 +252,56 @@ export class AppComponent implements OnInit {
         if (!filter) {
           return of({ rooms: [] as Room[], note: '' });
         }
+
         return this.roomService.searchRooms({ ...filter, page: 0, size: 3 }).pipe(
-          map(r => ({
-            rooms: r.data.content,
-            note: r.data.content.length > 0 ? 'Tôi tìm được một vài phòng phù hợp để bạn xem nhanh.' : 'Tôi đã hiểu nhu cầu nhưng hiện chưa thấy phòng phù hợp hoàn toàn.'
+          map(response => ({
+            rooms: response.data.content,
+            note: response.data.content.length > 0
+              ? 'Tôi tìm được một vài phòng phù hợp để bạn xem nhanh.'
+              : 'Tôi đã hiểu nhu cầu nhưng hiện chưa thấy phòng phù hợp hoàn toàn.'
           })),
           catchError(() => of({ rooms: [] as Room[], note: '' }))
         );
       })
     );
+  }
+
+  private hasSearchKeyword(question: string): boolean {
+    const q = question.toLowerCase();
+    const searchKeywords = [
+      'tim phong',
+      'can phong',
+      'muon thue',
+      'thue phong',
+      'phong nao',
+      'goi y phong',
+      'phu hop voi toi',
+      'quan',
+      'gia',
+      'studio',
+      'cho o'
+    ];
+    return searchKeywords.some(keyword => q.includes(keyword));
+  }
+
+  private formatAssistantError(message?: string): string {
+    if (!message) {
+      return 'Khong the lay phan hoi AI luc nay.';
+    }
+
+    if (message.includes('RESOURCE_EXHAUSTED') || message.toLowerCase().includes('quota')) {
+      const retryDelayMatch = message.match(/retry in\s+([\d.]+)s/i) || message.match(/"retryDelay":\s*"(\d+)s"/i);
+      const retrySeconds = retryDelayMatch ? Math.max(1, Math.ceil(Number(retryDelayMatch[1]))) : null;
+      return retrySeconds
+        ? `AI dang het quota tam thoi. Vui long thu lai sau khoang ${retrySeconds} giay.`
+        : 'AI dang het quota tam thoi. Vui long thu lai sau it phut.';
+    }
+
+    if (message.includes('PERMISSION_DENIED') || message.toLowerCase().includes('leaked')) {
+      return 'Khoa AI tren server dang khong hop le. Can thay API key Gemini moi.';
+    }
+
+    return message;
   }
 
   private hasSearchIntent(question: string, parsed: AiSearchResult | null): boolean {
@@ -269,6 +319,7 @@ export class AppComponent implements OnInit {
       parsed?.isFurnished !== null && parsed?.isFurnished !== undefined ||
       parsed?.genderRequirement
     );
+
     return hinted || hasParsedSignal;
   }
 
