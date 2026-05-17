@@ -269,36 +269,36 @@ export class AppComponent implements OnInit {
   private hasSearchKeyword(question: string): boolean {
     const q = question.toLowerCase();
     const searchKeywords = [
-      'tim phong',
-      'can phong',
-      'muon thue',
-      'thue phong',
-      'phong nao',
-      'goi y phong',
-      'phu hop voi toi',
-      'quan',
-      'gia',
+      'tìm phòng',
+      'cần phòng',
+      'muốn thuê',
+      'thuê phòng',
+      'phòng nào',
+      'gợi ý phòng',
+      'phù hợp với tôi',
+      'quận',
+      'giá',
       'studio',
-      'cho o'
+      'chỗ ở'
     ];
     return searchKeywords.some(keyword => q.includes(keyword));
   }
 
   private formatAssistantError(message?: string): string {
     if (!message) {
-      return 'Khong the lay phan hoi AI luc nay.';
+      return 'Không thể lấy phản hồi AI lúc này.';
     }
 
     if (message.includes('RESOURCE_EXHAUSTED') || message.toLowerCase().includes('quota')) {
       const retryDelayMatch = message.match(/retry in\s+([\d.]+)s/i) || message.match(/"retryDelay":\s*"(\d+)s"/i);
       const retrySeconds = retryDelayMatch ? Math.max(1, Math.ceil(Number(retryDelayMatch[1]))) : null;
       return retrySeconds
-        ? `AI dang het quota tam thoi. Vui long thu lai sau khoang ${retrySeconds} giay.`
-        : 'AI dang het quota tam thoi. Vui long thu lai sau it phut.';
+        ? `AI đang hết quota tạm thời. Vui lòng thử lại sau ${retrySeconds} giây.`
+        : 'AI đang hết quota tạm thời. Vui lòng thử lại sau ít phút.';
     }
 
     if (message.includes('PERMISSION_DENIED') || message.toLowerCase().includes('leaked')) {
-      return 'Khoa AI tren server dang khong hop le. Can thay API key Gemini moi.';
+      return 'Khoá AI trên server đang không hợp lệ. Cần thay API key Gemini mới.';
     }
 
     return message;
