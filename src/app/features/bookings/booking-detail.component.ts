@@ -25,6 +25,7 @@ export class BookingDetailComponent implements OnInit {
   info = signal('');
   decisionNote = '';
   decisionSaving = signal(false);
+  paymentOpening = signal(false);
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -59,10 +60,27 @@ export class BookingDetailComponent implements OnInit {
   }
 
   openPayment(): void {
-    const payUrl = this.booking()?.paymentPayUrl;
-    if (payUrl) {
-      window.location.href = payUrl;
-    }
+    const booking = this.booking();
+    if (!booking || this.paymentOpening()) return;
+
+    this.paymentOpening.set(true);
+    this.error.set('');
+
+    this.bookingService.refreshPaymentLink(booking.id).subscribe({
+      next: r => {
+        this.booking.set(r.data);
+        this.paymentOpening.set(false);
+        if (r.data.paymentPayUrl) {
+          window.location.href = r.data.paymentPayUrl;
+        } else {
+          this.error.set('Không tạo được link thanh toán VNPAY');
+        }
+      },
+      error: e => {
+        this.error.set(e.error?.message ?? 'Không tạo được link thanh toán VNPAY');
+        this.paymentOpening.set(false);
+      }
+    });
   }
 
   cancelBooking(): void {

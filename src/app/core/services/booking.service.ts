@@ -38,6 +38,10 @@ export class BookingService {
     return this.http.patch<ApiResponse<RentalBooking>>(`${this.API}/${id}/cancel`, {});
   }
 
+  refreshPaymentLink(id: number): Observable<ApiResponse<RentalBooking>> {
+    return this.http.post<ApiResponse<RentalBooking>>(`${this.API}/${id}/vnpay/refresh`, {});
+  }
+
   landlordDecision(
     id: number,
     payload: { status: Extract<RentalBookingStatus, 'CONFIRMED' | 'REJECTED'>; note?: string }

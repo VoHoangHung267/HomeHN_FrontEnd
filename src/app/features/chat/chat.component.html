@@ -258,7 +258,11 @@
                         }
                         <div class="item-actions">
                           @if (canPayBooking(booking)) {
-                            <button class="btn btn-primary btn-sm" (click)="openPayment(booking)">Thanh toán cọc</button>
+                            <button class="btn btn-primary btn-sm"
+                                    (click)="openPayment(booking)"
+                                    [disabled]="paymentOpeningId() === booking.id">
+                              {{ paymentOpeningId() === booking.id ? 'Đang mở VNPAY...' : 'Thanh toán cọc' }}
+                            </button>
                           }
                           <button class="btn btn-ghost btn-sm" (click)="openBookingDetail(booking.id)">Xem chi tiết</button>
                         </div>

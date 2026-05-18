@@ -64,6 +64,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   bookingSending = signal(false);
   bookingError = signal('');
   bookingInfo = signal('');
+  paymentOpeningId = signal<number | null>(null);
 
   currentUserId = computed(() => this.auth.user()!.id);
 
@@ -324,13 +325,30 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   canPayBooking(booking: RentalBooking): boolean {
-    return this.auth.isSeeker() && booking.status === 'PENDING_PAYMENT' && !!booking.paymentPayUrl;
+    return this.auth.isSeeker() && ['PENDING_PAYMENT', 'PAYMENT_FAILED'].includes(booking.status);
   }
 
   openPayment(booking: RentalBooking): void {
-    if (booking.paymentPayUrl) {
-      window.location.href = booking.paymentPayUrl;
-    }
+    if (this.paymentOpeningId() === booking.id) return;
+
+    this.paymentOpeningId.set(booking.id);
+    this.bookingError.set('');
+
+    this.bookingService.refreshPaymentLink(booking.id).subscribe({
+      next: r => {
+        this.allBookings.update(list => list.map(item => item.id === booking.id ? r.data : item));
+        this.paymentOpeningId.set(null);
+        if (r.data.paymentPayUrl) {
+          window.location.href = r.data.paymentPayUrl;
+        } else {
+          this.bookingError.set('Không tạo được link thanh toán VNPAY');
+        }
+      },
+      error: e => {
+        this.bookingError.set(e.error?.message ?? 'Không tạo được link thanh toán VNPAY');
+        this.paymentOpeningId.set(null);
+      }
+    });
   }
 
   openBookingDetail(bookingId: number): void {

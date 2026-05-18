@@ -113,8 +113,12 @@
                class="side-image" />
           <div class="side-title">{{ b.roomTitle }}</div>
 
-          @if (!isLandlordView() && b.status === 'PENDING_PAYMENT' && b.paymentPayUrl) {
-            <button class="btn btn-primary btn-block" (click)="openPayment()">Thanh toán cọc bằng VNPAY</button>
+          @if (!isLandlordView() && (b.status === 'PENDING_PAYMENT' || b.status === 'PAYMENT_FAILED')) {
+            <button class="btn btn-primary btn-block"
+                    (click)="openPayment()"
+                    [disabled]="paymentOpening()">
+              {{ paymentOpening() ? 'Đang chuyển sang VNPAY...' : 'Thanh toán cọc bằng VNPAY' }}
+            </button>
           }
 
           @if (!isLandlordView() && (b.status === 'PENDING_PAYMENT' || b.status === 'PAYMENT_FAILED')) {
