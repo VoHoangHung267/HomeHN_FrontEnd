@@ -29,6 +29,10 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface EmailAvailabilityResponse {
+  exists: boolean;
+}
+
 export interface Page<T> {
   content: T[];
   totalElements: number;

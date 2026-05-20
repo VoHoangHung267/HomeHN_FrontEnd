@@ -1,6 +1,6 @@
-import { Component, ChangeDetectionStrategy, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ChatService } from '../../../core/services/chat.service';
 
@@ -32,16 +32,39 @@ import { ChatService } from '../../../core/services/chat.service';
         <input type="text" class="form-control" [(ngModel)]="fullName"
                name="fullName" required placeholder="Nguyễn Văn A" />
       </div>
+
       <div class="form-group">
         <label class="form-label">Email *</label>
-        <input type="email" class="form-control" [(ngModel)]="email"
+        <input type="email" class="form-control" [ngModel]="email"
+               (ngModelChange)="onEmailChange($event)" (blur)="checkEmailAvailability()"
                name="email" required placeholder="you@example.com" />
+        <div class="auth-actions">
+          <button type="button" class="btn btn-outline btn-block" [disabled]="sendingCode()"
+                  (click)="sendVerificationCode()">
+            @if (sendingCode()) { <span class="spinner"></span> Đang gửi mã... }
+            @else { {{ codeSent() ? 'Gửi lại mã xác thực' : 'Gửi mã xác thực' }} }
+          </button>
+        </div>
+        @if (emailHint()) {
+          <div class="form-hint">{{ emailHint() }}</div>
+        }
       </div>
+
+      @if (codeSent()) {
+        <div class="form-group">
+          <label class="form-label">Mã xác thực email *</label>
+          <input type="text" class="form-control" [(ngModel)]="verificationCode"
+                 name="verificationCode" required maxlength="6" placeholder="Nhập 6 chữ số" />
+          <div class="form-hint">Mã có hiệu lực trong 10 phút.</div>
+        </div>
+      }
+
       <div class="form-group">
         <label class="form-label">Số điện thoại *</label>
         <input type="tel" class="form-control" [(ngModel)]="phone"
                name="phone" required placeholder="0912345678" />
       </div>
+
       <div class="form-group">
         <label class="form-label">Mật khẩu *</label>
         <div class="password-wrap">
@@ -54,7 +77,9 @@ import { ChatService } from '../../../core/services/chat.service';
         </div>
         @if (password) {
           <div class="strength-wrap">
-            <div class="strength-bar"><div class="strength-fill" [class]="strengthClass()" [style.width.%]="strength()"></div></div>
+            <div class="strength-bar">
+              <div class="strength-fill" [class]="strengthClass()" [style.width.%]="strength()"></div>
+            </div>
             <span class="form-hint">Độ mạnh: {{ strengthLabel() }}</span>
           </div>
         }
@@ -83,12 +108,17 @@ export class RegisterComponent {
   email = '';
   phone = '';
   password = '';
+  verificationCode = '';
 
   role = signal<'SEEKER' | 'LANDLORD'>('SEEKER');
   showPwd = signal(false);
   loading = signal(false);
+  sendingCode = signal(false);
   error = signal('');
   success = signal('');
+  emailHint = signal('');
+  codeSent = signal(false);
+  emailExists = signal(false);
 
   strength = computed(() => {
     const p = this.password;
@@ -119,6 +149,65 @@ export class RegisterComponent {
   private readonly chat = inject(ChatService);
   private readonly router = inject(Router);
 
+  onEmailChange(value: string): void {
+    this.email = value;
+    this.error.set('');
+    this.success.set('');
+    this.emailHint.set('');
+    this.emailExists.set(false);
+    this.codeSent.set(false);
+    this.verificationCode = '';
+  }
+
+  checkEmailAvailability(): void {
+    const email = this.email.trim();
+    if (!email || !this.emailRegex.test(email)) {
+      return;
+    }
+
+    this.auth.checkEmail(email).subscribe({
+      next: ({ data }) => {
+        this.emailExists.set(data.exists);
+        this.emailHint.set(data.exists ? 'Email nay da duoc su dung.' : 'Email nay co the dang ky.');
+      },
+      error: () => {
+        this.emailHint.set('');
+      }
+    });
+  }
+
+  sendVerificationCode(): void {
+    const email = this.email.trim();
+    this.error.set('');
+    this.success.set('');
+
+    if (!email) {
+      this.error.set('Vui long nhap email truoc khi gui ma xac thuc');
+      return;
+    }
+    if (!this.emailRegex.test(email)) {
+      this.error.set('Email khong hop le');
+      return;
+    }
+
+    this.sendingCode.set(true);
+    this.auth.sendRegistrationVerificationCode(email).subscribe({
+      next: ({ message }) => {
+        this.codeSent.set(true);
+        this.emailExists.set(false);
+        this.emailHint.set('Da gui ma xac thuc toi email cua ban.');
+        this.success.set(message || 'Da gui ma xac thuc toi email cua ban');
+        this.sendingCode.set(false);
+      },
+      error: e => {
+        this.error.set(e.error?.message ?? 'Khong the gui ma xac thuc');
+        this.emailHint.set('');
+        this.codeSent.set(false);
+        this.sendingCode.set(false);
+      }
+    });
+  }
+
   onSubmit(): void {
     if (!this.fullName.trim() || !this.email.trim() || !this.phone.trim() || !this.password) {
       this.error.set('Vui lòng điền đầy đủ thông tin');
@@ -126,6 +215,18 @@ export class RegisterComponent {
     }
     if (!this.emailRegex.test(this.email.trim())) {
       this.error.set('Email không hợp lệ');
+      return;
+    }
+    if (this.emailExists()) {
+      this.error.set('Email này đã được sử dụng');
+      return;
+    }
+    if (!this.codeSent()) {
+      this.error.set('Vui lòng nhập mã xác thực email để đăng ký');
+      return;
+    }
+    if (!/^\d{6}$/.test(this.verificationCode.trim())) {
+      this.error.set('Vui lòng nhập mã xác thực gồm 6 chữ số');
       return;
     }
     if (!this.phoneRegex.test(this.phone.trim())) {
@@ -145,13 +246,14 @@ export class RegisterComponent {
       password: this.password,
       fullName: this.fullName.trim(),
       phone: this.phone.trim(),
-      role: this.role()
+      role: this.role(),
+      verificationCode: this.verificationCode.trim()
     }).subscribe({
       next: () => {
         this.success.set('Đăng ký thành công! Đang chuyển hướng...');
         this.chat.connect();
         setTimeout(() => {
-          this.router.navigate([this.role() === 'LANDLORD' ? '/landlord' : '/rooms']);
+          void this.router.navigate([this.role() === 'LANDLORD' ? '/landlord' : '/rooms']);
         }, 1200);
       },
       error: e => {

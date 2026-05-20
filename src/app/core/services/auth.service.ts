@@ -2,38 +2,49 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
-import { ApiResponse, AuthResponse, User } from '../models';
+import { ApiResponse, AuthResponse, EmailAvailabilityResponse, User } from '../models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly API = `${environment.apiUrl}/api/auth`;
 
-  // Angular 21: Signals cho reactive state — không cần BehaviorSubject
-  private readonly _user  = signal<User | null>(this.loadStoredUser());
+  private readonly _user = signal<User | null>(this.loadStoredUser());
   private readonly _token = signal<string | null>(localStorage.getItem('accessToken'));
 
-  // Public readonly signals
-  readonly user     = this._user.asReadonly();
-  readonly token    = this._token.asReadonly();
+  readonly user = this._user.asReadonly();
+  readonly token = this._token.asReadonly();
 
-  // Computed signals
-  readonly isLoggedIn  = computed(() => !!this._token());
-  readonly isAdmin     = computed(() => this._user()?.role === 'ADMIN');
-  readonly isLandlord  = computed(() => this._user()?.role === 'LANDLORD');
-  readonly isSeeker    = computed(() => this._user()?.role === 'SEEKER');
+  readonly isLoggedIn = computed(() => !!this._token());
+  readonly isAdmin = computed(() => this._user()?.role === 'ADMIN');
+  readonly isLandlord = computed(() => this._user()?.role === 'LANDLORD');
+  readonly isSeeker = computed(() => this._user()?.role === 'SEEKER');
   readonly currentRole = computed(() => this._user()?.role ?? null);
 
-  private readonly http   = inject(HttpClient);
+  private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
   register(payload: {
-    email: string; password: string;
-    fullName: string; phone: string; role: string;
+    email: string;
+    password: string;
+    fullName: string;
+    phone: string;
+    role: string;
+    verificationCode: string;
   }): Observable<ApiResponse<AuthResponse>> {
     return this.http.post<ApiResponse<AuthResponse>>(`${this.API}/register`, payload).pipe(
       tap(r => this.persist(r.data))
     );
+  }
+
+  checkEmail(email: string): Observable<ApiResponse<EmailAvailabilityResponse>> {
+    return this.http.get<ApiResponse<EmailAvailabilityResponse>>(`${this.API}/check-email`, {
+      params: { email }
+    });
+  }
+
+  sendRegistrationVerificationCode(email: string): Observable<ApiResponse<void>> {
+    return this.http.post<ApiResponse<void>>(`${this.API}/send-verification-code`, { email });
   }
 
   login(email: string, password: string): Observable<ApiResponse<AuthResponse>> {
@@ -68,9 +79,8 @@ export class AuthService {
     localStorage.setItem('user', JSON.stringify(user));
   }
 
-  // ── Private ─────────────────────────────────────────────
   private persist(data: AuthResponse): void {
-    localStorage.setItem('accessToken',  data.accessToken);
+    localStorage.setItem('accessToken', data.accessToken);
     localStorage.setItem('refreshToken', data.refreshToken);
     localStorage.setItem('user', JSON.stringify(data.user));
     this._token.set(data.accessToken);
@@ -86,7 +96,9 @@ export class AuthService {
   private loadStoredUser(): User | null {
     try {
       const raw = localStorage.getItem('user');
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
+      return raw ? JSON.parse(raw) as User : null;
+    } catch {
+      return null;
+    }
   }
 }
