@@ -1,11 +1,15 @@
 import {
-  Component, ChangeDetectionStrategy, OnInit,
-  signal, inject
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+  signal
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService, ProfileStats } from '../../core/services/profile.service';
+import { ToastService } from '../../core/services/toast.service';
 import { User } from '../../core/models';
 
 @Component({
@@ -20,6 +24,7 @@ export class ProfileComponent implements OnInit {
   private readonly profileService = inject(ProfileService);
   private readonly phoneRegex = /^0\d{9}$/;
   readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
 
   activeTab = signal<'info' | 'password' | 'stats'>('info');
 
@@ -27,8 +32,6 @@ export class ProfileComponent implements OnInit {
   fullName = '';
   phone = '';
   saving = signal(false);
-  infoMsg = signal('');
-  infoError = signal('');
 
   currentPwd = '';
   newPwd = '';
@@ -36,8 +39,6 @@ export class ProfileComponent implements OnInit {
   showCurrent = signal(false);
   showNew = signal(false);
   pwdSaving = signal(false);
-  pwdMsg = signal('');
-  pwdError = signal('');
 
   avatarPreview = signal<string | null>(null);
   avatarFile: File | null = null;
@@ -57,44 +58,40 @@ export class ProfileComponent implements OnInit {
 
   saveProfile(): void {
     if (!this.fullName.trim()) {
-      this.infoError.set('Họ tên không được để trống');
+      this.toast.error('Họ tên không được để trống');
       return;
     }
     if (this.phone.trim() && !this.phoneRegex.test(this.phone.trim())) {
-      this.infoError.set('Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0');
+      this.toast.error('Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0');
       return;
     }
 
     this.saving.set(true);
-    this.infoError.set('');
     this.profileService.updateProfile({ fullName: this.fullName.trim(), phone: this.phone.trim() }).subscribe({
       next: r => {
         this.profile.set(r.data);
         this.auth.updateUser(r.data);
-        this.infoMsg.set('Cập nhật thành công!');
+        this.toast.success('Cập nhật thành công');
         this.saving.set(false);
-        setTimeout(() => this.infoMsg.set(''), 3000);
       },
       error: e => {
-        this.infoError.set(e.error?.message ?? 'Lỗi cập nhật');
+        this.toast.error(e.error?.message ?? 'Lỗi cập nhật');
         this.saving.set(false);
       }
     });
   }
 
   changePassword(): void {
-    this.pwdError.set('');
-
     if (!this.currentPwd || !this.newPwd) {
-      this.pwdError.set('Vui lòng điền đầy đủ');
+      this.toast.error('Vui lòng điền đầy đủ');
       return;
     }
     if (this.newPwd.length < 8) {
-      this.pwdError.set('Mật khẩu mới ít nhất 8 ký tự');
+      this.toast.error('Mật khẩu mới ít nhất 8 ký tự');
       return;
     }
     if (this.newPwd !== this.confirmPwd) {
-      this.pwdError.set('Xác nhận mật khẩu không khớp');
+      this.toast.error('Xác nhận mật khẩu không khớp');
       return;
     }
 
@@ -104,15 +101,14 @@ export class ProfileComponent implements OnInit {
       newPassword: this.newPwd
     }).subscribe({
       next: () => {
-        this.pwdMsg.set('Đổi mật khẩu thành công!');
+        this.toast.success('Đổi mật khẩu thành công');
         this.currentPwd = '';
         this.newPwd = '';
         this.confirmPwd = '';
         this.pwdSaving.set(false);
-        setTimeout(() => this.pwdMsg.set(''), 3000);
       },
       error: e => {
-        this.pwdError.set(e.error?.message ?? 'Sai mật khẩu hiện tại');
+        this.toast.error(e.error?.message ?? 'Sai mật khẩu hiện tại');
         this.pwdSaving.set(false);
       }
     });
@@ -124,7 +120,7 @@ export class ProfileComponent implements OnInit {
 
     const file = input.files[0];
     if (file.size > 5 * 1024 * 1024) {
-      alert('Ảnh tối đa 5MB');
+      this.toast.error('Ảnh tối đa 5MB');
       return;
     }
 
@@ -145,10 +141,12 @@ export class ProfileComponent implements OnInit {
         this.auth.updateUser(updated);
         this.avatarFile = null;
         this.avatarUploading.set(false);
-        this.infoMsg.set('Cập nhật ảnh đại diện thành công!');
-        setTimeout(() => this.infoMsg.set(''), 3000);
+        this.toast.success('Cập nhật ảnh đại diện thành công');
       },
-      error: () => this.avatarUploading.set(false)
+      error: e => {
+        this.toast.error(e.error?.message ?? 'Không thể tải ảnh đại diện');
+        this.avatarUploading.set(false);
+      }
     });
   }
 

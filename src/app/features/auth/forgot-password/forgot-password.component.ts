@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-forgot-password',
@@ -17,23 +18,10 @@ import { AuthService } from '../../../core/services/auth.service';
       <p>Nhập email để nhận liên kết đặt lại mật khẩu</p>
     </div>
 
-    @if (message()) {
-      <div class="alert alert-success">{{ message() }}</div>
-    }
-    @if (error()) {
-      <div class="alert alert-error">{{ error() }}</div>
-    }
-
     <form (ngSubmit)="onSubmit()">
       <div class="form-group">
         <label class="form-label">Email</label>
-        <input
-          type="email"
-          class="form-control"
-          [(ngModel)]="email"
-          name="email"
-          required
-          placeholder="you@example.com" />
+        <input type="email" class="form-control" [(ngModel)]="email" name="email" required placeholder="you@example.com" />
       </div>
 
       <button type="submit" class="btn btn-primary btn-block btn-lg" [disabled]="loading()">
@@ -52,26 +40,25 @@ import { AuthService } from '../../../core/services/auth.service';
 export class ForgotPasswordComponent {
   email = '';
   loading = signal(false);
-  message = signal('');
-  error = signal('');
 
   private readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
 
   onSubmit(): void {
     this.email = this.email.trim();
-    if (!this.email) return;
+    if (!this.email) {
+      this.toast.error('Vui lòng nhập email');
+      return;
+    }
 
     this.loading.set(true);
-    this.message.set('');
-    this.error.set('');
-
     this.auth.forgotPassword(this.email).subscribe({
       next: r => {
-        this.message.set(r.message);
+        this.toast.success(r.message);
         this.loading.set(false);
       },
       error: e => {
-        this.error.set(e.error?.message ?? 'Không thể gửi email đặt lại mật khẩu');
+        this.toast.error(e.error?.message ?? 'Không thể gửi email đặt lại mật khẩu');
         this.loading.set(false);
       }
     });

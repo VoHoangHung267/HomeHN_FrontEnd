@@ -1,8 +1,9 @@
-import { Component, ChangeDetectionStrategy, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { BookingService } from '../../core/services/booking.service';
+import { ToastService } from '../../core/services/toast.service';
 import { RentalBooking, RentalBookingStatus, RentalPaymentStatus } from '../../core/models';
 
 @Component({
@@ -16,6 +17,7 @@ import { RentalBooking, RentalBookingStatus, RentalPaymentStatus } from '../../c
 export class MyBookingsComponent implements OnInit {
   readonly auth = inject(AuthService);
   private readonly bookingService = inject(BookingService);
+  private readonly toast = inject(ToastService);
 
   bookings = signal<RentalBooking[]>([]);
   loading = signal(false);
@@ -38,7 +40,7 @@ export class MyBookingsComponent implements OnInit {
         this.loading.set(false);
       },
       error: e => {
-        this.error.set(e.error?.message ?? 'Không tải được danh sách đơn thuê');
+        this.toast.error(e.error?.message ?? 'Không tải được danh sách đơn thuê');
         this.loading.set(false);
       }
     });

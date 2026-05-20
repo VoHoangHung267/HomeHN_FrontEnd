@@ -101,6 +101,8 @@
   <router-outlet />
 </main>
 
+<app-toast-outlet />
+
 <button class="global-assistant-fab" (click)="toggleAssistant()" [class.open]="assistantOpen()" title="Trợ lý AI">
   {{ assistantOpen() ? '✕' : 'AI' }}
 </button>
@@ -165,10 +167,6 @@
         <button type="button" (click)="useAssistantPrompt('Cách viết tin đăng để dễ có người thuê?')">Viết tin đăng</button>
         <button type="button" (click)="useAssistantPrompt('Đặt lịch xem phòng và thuê phòng trên web này ra sao?')">Đặt lịch và thuê</button>
       </div>
-
-      @if (assistantError()) {
-        <div class="alert alert-error">{{ assistantError() }}</div>
-      }
 
       <div class="assistant-input-wrap">
         <textarea class="form-control assistant-input" rows="3" [(ngModel)]="assistantQuestion"

@@ -1,8 +1,9 @@
-import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ChatService } from '../../../core/services/chat.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -17,10 +18,6 @@ import { ChatService } from '../../../core/services/chat.service';
       <h1>Đăng nhập</h1>
       <p>Chào mừng bạn trở lại HomeHN.vn</p>
     </div>
-
-    @if (error()) {
-      <div class="alert alert-error">{{ error() }}</div>
-    }
 
     <form (ngSubmit)="onSubmit()">
       <div class="form-group">
@@ -64,28 +61,30 @@ export class LoginComponent {
 
   showPwd = signal(false);
   loading = signal(false);
-  error = signal('');
 
   private readonly auth = inject(AuthService);
   private readonly chat = inject(ChatService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   onSubmit(): void {
-    if (!this.email || !this.password) return;
-    this.loading.set(true);
-    this.error.set('');
+    if (!this.email || !this.password) {
+      this.toast.error('Vui lòng nhập email và mật khẩu');
+      return;
+    }
 
+    this.loading.set(true);
     this.auth.login(this.email, this.password).subscribe({
       next: r => {
         this.chat.connect();
         const role = r.data.user.role;
         const dest = role === 'ADMIN' ? '/admin'
-                   : role === 'LANDLORD' ? '/landlord'
-                   : '/rooms';
+          : role === 'LANDLORD' ? '/landlord'
+          : '/rooms';
         this.router.navigate([dest]);
       },
       error: e => {
-        this.error.set(e.error?.message ?? 'Đăng nhập thất bại');
+        this.toast.error(e.error?.message ?? 'Đăng nhập thất bại');
         this.loading.set(false);
       }
     });

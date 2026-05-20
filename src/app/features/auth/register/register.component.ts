@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ChatService } from '../../../core/services/chat.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-register',
@@ -22,9 +23,6 @@ import { ChatService } from '../../../core/services/chat.service';
       <button type="button" [class.active]="role() === 'SEEKER'" (click)="role.set('SEEKER')">🏠 Tìm phòng</button>
       <button type="button" [class.active]="role() === 'LANDLORD'" (click)="role.set('LANDLORD')">🏢 Cho thuê</button>
     </div>
-
-    @if (error()) { <div class="alert alert-error">{{ error() }}</div> }
-    @if (success()) { <div class="alert alert-success">{{ success() }}</div> }
 
     <form (ngSubmit)="onSubmit()">
       <div class="form-group">
@@ -56,6 +54,9 @@ import { ChatService } from '../../../core/services/chat.service';
           <input type="text" class="form-control" [(ngModel)]="verificationCode"
                  name="verificationCode" required maxlength="6" placeholder="Nhập 6 chữ số" />
           <div class="form-hint">Mã có hiệu lực trong 10 phút.</div>
+          @if (verificationCodeError()) {
+            <div class="form-error">{{ verificationCodeError() }}</div>
+          }
         </div>
       }
 
@@ -114,11 +115,10 @@ export class RegisterComponent {
   showPwd = signal(false);
   loading = signal(false);
   sendingCode = signal(false);
-  error = signal('');
-  success = signal('');
   emailHint = signal('');
   codeSent = signal(false);
   emailExists = signal(false);
+  verificationCodeError = signal('');
 
   strength = computed(() => {
     const p = this.password;
@@ -148,27 +148,25 @@ export class RegisterComponent {
   private readonly auth = inject(AuthService);
   private readonly chat = inject(ChatService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   onEmailChange(value: string): void {
     this.email = value;
-    this.error.set('');
-    this.success.set('');
     this.emailHint.set('');
     this.emailExists.set(false);
     this.codeSent.set(false);
     this.verificationCode = '';
+    this.verificationCodeError.set('');
   }
 
   checkEmailAvailability(): void {
     const email = this.email.trim();
-    if (!email || !this.emailRegex.test(email)) {
-      return;
-    }
+    if (!email || !this.emailRegex.test(email)) return;
 
     this.auth.checkEmail(email).subscribe({
       next: ({ data }) => {
         this.emailExists.set(data.exists);
-        this.emailHint.set(data.exists ? 'Email nay da duoc su dung.' : 'Email nay co the dang ky.');
+        this.emailHint.set(data.exists ? 'Email này đã được sử dụng.' : 'Email này hợp lệ.');
       },
       error: () => {
         this.emailHint.set('');
@@ -178,15 +176,14 @@ export class RegisterComponent {
 
   sendVerificationCode(): void {
     const email = this.email.trim();
-    this.error.set('');
-    this.success.set('');
+    this.verificationCodeError.set('');
 
     if (!email) {
-      this.error.set('Vui long nhap email truoc khi gui ma xac thuc');
+      this.toast.error('Vui lòng nhập email trước khi gửi mã xác thực');
       return;
     }
     if (!this.emailRegex.test(email)) {
-      this.error.set('Email khong hop le');
+      this.toast.error('Email không hợp lệ');
       return;
     }
 
@@ -196,11 +193,11 @@ export class RegisterComponent {
         this.codeSent.set(true);
         this.emailExists.set(false);
         this.emailHint.set('Da gui ma xac thuc toi email cua ban.');
-        this.success.set(message || 'Da gui ma xac thuc toi email cua ban');
+        this.toast.success(message || 'Đã gửi mã xác thực tới email của bạn');
         this.sendingCode.set(false);
       },
       error: e => {
-        this.error.set(e.error?.message ?? 'Khong the gui ma xac thuc');
+        this.toast.error(e.error?.message ?? 'Không thể gửi mã xác thực');
         this.emailHint.set('');
         this.codeSent.set(false);
         this.sendingCode.set(false);
@@ -210,36 +207,36 @@ export class RegisterComponent {
 
   onSubmit(): void {
     if (!this.fullName.trim() || !this.email.trim() || !this.phone.trim() || !this.password) {
-      this.error.set('Vui lòng điền đầy đủ thông tin');
+      this.toast.error('Vui lòng điền đầy đủ thông tin');
       return;
     }
     if (!this.emailRegex.test(this.email.trim())) {
-      this.error.set('Email không hợp lệ');
+      this.toast.error('Email không hợp lệ');
       return;
     }
     if (this.emailExists()) {
-      this.error.set('Email này đã được sử dụng');
+      this.toast.error('Email này đã được sử dụng');
       return;
     }
     if (!this.codeSent()) {
-      this.error.set('Vui lòng nhập mã xác thực email để đăng ký');
+      this.toast.error('Vui lòng gửi mã xác thực email trước khi đăng ký');
       return;
     }
     if (!/^\d{6}$/.test(this.verificationCode.trim())) {
-      this.error.set('Vui lòng nhập mã xác thực gồm 6 chữ số');
+      this.verificationCodeError.set('Vui lòng nhập mã xác thực gồm 6 chữ số');
       return;
     }
     if (!this.phoneRegex.test(this.phone.trim())) {
-      this.error.set('Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0');
+      this.toast.error('Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0');
       return;
     }
     if (this.password.length < 8) {
-      this.error.set('Mật khẩu phải có ít nhất 8 ký tự');
+      this.toast.error('Mật khẩu phải có ít nhất 8 ký tự');
       return;
     }
 
     this.loading.set(true);
-    this.error.set('');
+    this.verificationCodeError.set('');
 
     this.auth.register({
       email: this.email.trim(),
@@ -250,14 +247,20 @@ export class RegisterComponent {
       verificationCode: this.verificationCode.trim()
     }).subscribe({
       next: () => {
-        this.success.set('Đăng ký thành công! Đang chuyển hướng...');
+        this.toast.success('Đăng ký thành công');
         this.chat.connect();
         setTimeout(() => {
           void this.router.navigate([this.role() === 'LANDLORD' ? '/landlord' : '/rooms']);
         }, 1200);
       },
       error: e => {
-        this.error.set(e.error?.message ?? 'Đăng ký thất bại');
+        const message = e.error?.message ?? 'Đăng ký thất bại';
+        const normalized = message.toLowerCase();
+        if (normalized.includes('mã xác thực') || normalized.includes('yêu cầu mã')) {
+          this.verificationCodeError.set(message);
+        } else {
+          this.toast.error(message);
+        }
         this.loading.set(false);
       }
     });

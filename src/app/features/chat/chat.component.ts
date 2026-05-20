@@ -9,6 +9,7 @@ import { ChatService } from '../../core/services/chat.service';
 import { AuthService } from '../../core/services/auth.service';
 import { BookingService } from '../../core/services/booking.service';
 import { ViewingAppointmentService } from '../../core/services/viewing-appointment.service';
+import { ToastService } from '../../core/services/toast.service';
 import {
   ChatRoom, Message, RentalBooking, RentalBookingStatus, RentalPaymentStatus,
   ViewingAppointment, ViewingAppointmentStatus
@@ -34,6 +35,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   private readonly appointmentService = inject(ViewingAppointmentService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   chatRooms = signal<ChatRoom[]>([]);
   messages = signal<Message[]>([]);
@@ -50,8 +52,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   appointmentAt = '';
   appointmentMessage = '';
   appointmentSending = signal(false);
-  appointmentError = signal('');
-  appointmentInfo = signal('');
 
   bookingFullName = '';
   bookingPhone = '';
@@ -62,8 +62,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   bookingOccupantCount = 1;
   bookingNote = '';
   bookingSending = signal(false);
-  bookingError = signal('');
-  bookingInfo = signal('');
   paymentOpeningId = signal<number | null>(null);
 
   currentUserId = computed(() => this.auth.user()!.id);
@@ -212,17 +210,15 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
     const requestedAt = this.normalizeDateTimeLocal(this.appointmentAt);
     if (!requestedAt) {
-      this.appointmentError.set('Vui lòng chọn thời gian xem phòng');
+      this.toast.error('Vui lòng chọn thời gian xem phòng');
       return;
     }
     if (!this.isFutureDateTime(requestedAt)) {
-      this.appointmentError.set('Vui lòng chọn thời gian trong tương lai');
+      this.toast.error('Vui lòng chọn thời gian trong tương lai');
       return;
     }
 
     this.appointmentSending.set(true);
-    this.appointmentError.set('');
-    this.appointmentInfo.set('');
 
     this.appointmentService.create(chat.roomId, {
       requestedAt,
@@ -230,13 +226,13 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     }).subscribe({
       next: r => {
         this.allAppointments.update(list => [r.data, ...list]);
-        this.appointmentInfo.set('Đã gửi yêu cầu hẹn lịch xem phòng.');
+        this.toast.success('Đã gửi yêu cầu hẹn lịch xem phòng');
         this.appointmentMessage = '';
         this.appointmentAt = '';
         this.appointmentSending.set(false);
       },
       error: e => {
-        this.appointmentError.set(e.error?.message ?? 'Không gửi được yêu cầu hẹn lịch');
+        this.toast.error(e.error?.message ?? 'Không gửi được yêu cầu hẹn lịch');
         this.appointmentSending.set(false);
       }
     });
@@ -248,9 +244,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.appointmentService.cancel(appointment.id).subscribe({
       next: r => {
         this.allAppointments.update(list => list.map(item => item.id === appointment.id ? r.data : item));
+        this.toast.success('Đã huỷ lịch xem phòng');
       },
       error: e => {
-        this.appointmentError.set(e.error?.message ?? 'Không huỷ được lịch xem phòng');
+        this.toast.error(e.error?.message ?? 'Không huỷ được lịch xem phòng');
       }
     });
   }
@@ -260,38 +257,36 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (!chat) return;
 
     if (!this.bookingFullName.trim() || !this.bookingPhone.trim()) {
-      this.bookingError.set('Vui lòng nhập họ tên và số điện thoại');
+      this.toast.error('Vui lòng nhập họ tên và số điện thoại');
       return;
     }
     if (!this.bookingMoveInDate) {
-      this.bookingError.set('Vui lòng chọn ngày dự kiến vào ở');
+      this.toast.error('Vui lòng chọn ngày dự kiến vào ở');
       return;
     }
 
     if (!this.phoneRegex.test(this.bookingPhone.trim())) {
-      this.bookingError.set('Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0');
+      this.toast.error('Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0');
       return;
     }
     if (this.bookingEmail.trim() && !this.emailRegex.test(this.bookingEmail.trim())) {
-      this.bookingError.set('Email không hợp lệ');
+      this.toast.error('Email không hợp lệ');
       return;
     }
     if (this.bookingIdentityNumber.trim() && !this.identityRegex.test(this.bookingIdentityNumber.trim())) {
-      this.bookingError.set('CCCD/CMND phải gồm 9 hoặc 12 chữ số');
+      this.toast.error('CCCD/CMND phải gồm 9 hoặc 12 chữ số');
       return;
     }
     if (this.bookingLeaseMonths < 1 || this.bookingLeaseMonths > 36) {
-      this.bookingError.set('Thời hạn thuê phải từ 1 đến 36 tháng');
+      this.toast.error('Thời hạn thuê phải từ 1 đến 36 tháng');
       return;
     }
     if (this.bookingOccupantCount < 1 || this.bookingOccupantCount > 20) {
-      this.bookingError.set('Số người ở phải từ 1 đến 20');
+      this.toast.error('Số người ở phải từ 1 đến 20');
       return;
     }
 
     this.bookingSending.set(true);
-    this.bookingError.set('');
-    this.bookingInfo.set('');
 
     this.bookingService.create(chat.roomId, {
       tenantFullName: this.bookingFullName.trim(),
@@ -305,12 +300,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     }).subscribe({
       next: r => {
         this.allBookings.update(list => [r.data, ...list]);
-        this.bookingInfo.set('Đã tạo yêu cầu thuê phòng. Bạn có thể thanh toán cọc ngay trong mục bên dưới.');
+        this.toast.success('Đã tạo yêu cầu thuê phòng');
         this.bookingNote = '';
         this.bookingSending.set(false);
       },
       error: e => {
-        this.bookingError.set(e.error?.message ?? 'Không tạo được yêu cầu thuê phòng');
+        this.toast.error(e.error?.message ?? 'Không tạo được yêu cầu thuê phòng');
         this.bookingSending.set(false);
       }
     });
@@ -332,8 +327,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (this.paymentOpeningId() === booking.id) return;
 
     this.paymentOpeningId.set(booking.id);
-    this.bookingError.set('');
-
     this.bookingService.refreshPaymentLink(booking.id).subscribe({
       next: r => {
         this.allBookings.update(list => list.map(item => item.id === booking.id ? r.data : item));
@@ -341,11 +334,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         if (r.data.paymentPayUrl) {
           window.location.href = r.data.paymentPayUrl;
         } else {
-          this.bookingError.set('Không tạo được link thanh toán VNPAY');
+          this.toast.error('Không tạo được link thanh toán VNPAY');
         }
       },
       error: e => {
-        this.bookingError.set(e.error?.message ?? 'Không tạo được link thanh toán VNPAY');
+        this.toast.error(e.error?.message ?? 'Không tạo được link thanh toán VNPAY');
         this.paymentOpeningId.set(null);
       }
     });
@@ -398,9 +391,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
     this.appointmentAt = this.toDateTimeLocalValue(new Date());
     this.appointmentMessage = '';
-    this.appointmentError.set('');
-    this.appointmentInfo.set('');
-
     this.bookingFullName = user?.fullName ?? '';
     this.bookingPhone = user?.phone ?? '';
     this.bookingEmail = user?.email ?? '';
@@ -409,8 +399,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.bookingLeaseMonths = 6;
     this.bookingOccupantCount = 1;
     this.bookingNote = '';
-    this.bookingError.set('');
-    this.bookingInfo.set('');
   }
 
   private normalizeDateTimeLocal(value: string): string {

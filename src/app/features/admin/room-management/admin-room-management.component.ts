@@ -5,6 +5,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { AdminService, AdminRoomFilter, ReportItem } from '../../../core/services/admin.service';
 import { Room, ROOM_TYPE_LABELS, STATUS_LABELS, RoomStatus, DISTRICTS_HN } from '../../../core/models';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-admin-room-management',
@@ -18,6 +19,7 @@ export class AdminRoomManagementComponent implements OnInit {
   private readonly adminService = inject(AdminService);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly toast = inject(ToastService);
 
   // â”€â”€ Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   activeTab = signal<'rooms' | 'reports'>('rooms');
@@ -156,10 +158,11 @@ export class AdminRoomManagementComponent implements OnInit {
     const r = this.selectedReport();
     if (!r) return;
     const note = this.resolveNote().trim();
-    if (!note) { alert('Vui lòng nhập ghi chú xử lý'); return; }
+    if (!note) { this.toast.error('Vui lòng nhập ghi chú xử lý'); return; }
     this.adminService.resolveReport(r.id, note, newStatus).subscribe(() => {
       this.reports.update(list => list.filter(x => x.id !== r.id));
       this.selectedReport.set(null);
+      this.toast.success('Đã cập nhật trạng thái báo cáo');
     });
   }
 

@@ -9,6 +9,7 @@ import { HttpClient } from '@angular/common/http';
 import { debounceTime, distinctUntilChanged, Subject, switchMap, of, catchError } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ExtractRoomFormResult, RoomService } from '../../../core/services/room.service';
+import { ToastService } from '../../../core/services/toast.service';
 import {
   RoomFormData, ROOM_TYPE_LABELS, DISTRICTS_HN,
   AMENITIES_LIST, GeoResult
@@ -46,13 +47,13 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly http = inject(HttpClient);
+  private readonly toast = inject(ToastService);
 
   isEditMode = false;
   roomId: number | null = null;
 
   loading = signal(false);
   error = signal('');
-  success = signal('');
   aiLoading = signal(false);
   aiError = signal('');
   aiDraft = '';
@@ -324,8 +325,6 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
 
   fillFormWithAi(): void {
     this.aiError.set('');
-    this.success.set('');
-
     if (!this.aiDraft.trim()) {
       this.aiError.set('Vui lòng nhập mô tả tự do trước khi dùng AI.');
       return;
@@ -337,7 +336,7 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
     }).subscribe({
       next: r => {
         this.applyAiFormData(r.data);
-        this.success.set(r.data.note?.trim()
+        this.toast.success(r.data.note?.trim()
           ? `AI đã điền các trường nhận diện được. ${r.data.note.trim()}`
           : 'AI đã điền các trường nhận diện được vào form.');
         this.aiLoading.set(false);
@@ -373,11 +372,10 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
   onSubmit(): void {
     const validationError = this.validateForm();
     if (validationError) {
-      this.error.set(validationError);
+      this.toast.error(validationError);
       return;
     }
     this.loading.set(true);
-    this.error.set('');
 
     const req$ = this.isEditMode && this.roomId
       ? this.roomService.updateRoom(this.roomId, this.form)
@@ -397,7 +395,7 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       },
       error: e => {
-        this.error.set(this.resolveErrorMessage(e));
+        this.toast.error(this.resolveErrorMessage(e));
         this.loading.set(false);
       }
     });
@@ -472,7 +470,7 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private finish(): void {
-    this.success.set(this.isEditMode
+    this.toast.success(this.isEditMode
       ? 'Cập nhật phòng thành công!'
       : 'Đăng phòng thành công! Chờ admin duyệt.');
     setTimeout(() => this.router.navigate(['/landlord']), 1500);

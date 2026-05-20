@@ -64,9 +64,6 @@
             <div class="content-card">
               <h2 class="card-title">Thông tin cá nhân</h2>
 
-              @if (infoMsg()) { <div class="alert alert-success">{{ infoMsg() }}</div> }
-              @if (infoError()) { <div class="alert alert-error">{{ infoError() }}</div> }
-
               <div class="form-grid">
                 <div class="form-group">
                   <label class="form-label">Họ và tên *</label>
@@ -98,9 +95,6 @@
           @if (activeTab() === 'password') {
             <div class="content-card">
               <h2 class="card-title">Đổi mật khẩu</h2>
-
-              @if (pwdMsg()) { <div class="alert alert-success">{{ pwdMsg() }}</div> }
-              @if (pwdError()) { <div class="alert alert-error">{{ pwdError() }}</div> }
 
               <div class="form-group">
                 <label class="form-label">Mật khẩu hiện tại *</label>

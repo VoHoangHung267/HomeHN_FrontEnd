@@ -1,15 +1,18 @@
-import {
-  Component, ChangeDetectionStrategy, OnInit,
-  signal, computed, inject
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DecimalPipe, KeyValuePipe } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { AiSearchResult, RoomService } from '../../../core/services/room.service';
+import { ToastService } from '../../../core/services/toast.service';
 import {
-  Room, RoomFilter, ROOM_TYPE_LABELS, GENDER_LABELS,
-  DISTRICTS_HN, RoomType, GenderRequirement
+  DISTRICTS_HN,
+  GENDER_LABELS,
+  GenderRequirement,
+  Room,
+  RoomFilter,
+  ROOM_TYPE_LABELS,
+  RoomType
 } from '../../../core/models';
 
 @Component({
@@ -24,6 +27,7 @@ export class RoomListComponent implements OnInit {
   private readonly roomService = inject(RoomService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   rooms = signal<Room[]>([]);
   loading = signal(false);
@@ -90,7 +94,7 @@ export class RoomListComponent implements OnInit {
     this.aiSearchNote.set('');
 
     if (!this.aiSearchQuery.trim()) {
-      this.aiSearchError.set('Vui lòng nhập nhu cầu tìm phòng trước khi dùng AI.');
+      this.toast.error('Vui lòng nhập nhu cầu tìm phòng trước khi dùng AI.');
       return;
     }
 
@@ -103,7 +107,7 @@ export class RoomListComponent implements OnInit {
         this.applyFilter();
       },
       error: e => {
-        this.aiSearchError.set(e.error?.message ?? 'Không thể phân tích nhu cầu tìm phòng lúc này.');
+        this.toast.error(e.error?.message ?? 'Không thể phân tích nhu cầu tìm phòng lúc này.');
         this.aiSearchLoading.set(false);
       }
     });

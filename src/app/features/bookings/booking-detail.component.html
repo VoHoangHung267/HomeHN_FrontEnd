@@ -3,13 +3,6 @@
     <a routerLink="/bookings">Đơn thuê phòng</a> › <span class="current">Chi tiết</span>
   </div>
 
-  @if (info()) {
-    <div class="alert alert-info">{{ info() }}</div>
-  }
-  @if (error()) {
-    <div class="alert alert-error">{{ error() }}</div>
-  }
-
   @if (loading()) {
     <div class="skeleton" style="height: 320px; border-radius: 16px"></div>
   }

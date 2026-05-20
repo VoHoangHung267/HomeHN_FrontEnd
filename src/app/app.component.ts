@@ -10,6 +10,8 @@ import { AuthService } from './core/services/auth.service';
 import { ChatService } from './core/services/chat.service';
 import { NotificationService } from './core/services/notification.service';
 import { AiSearchResult, RoomService } from './core/services/room.service';
+import { ToastService } from './core/services/toast.service';
+import { ToastOutletComponent } from './shared/toast-outlet/toast-outlet.component';
 
 type AssistantMessage = {
   role: 'assistant' | 'user';
@@ -24,7 +26,7 @@ type AssistantMessage = {
   selector: 'app-root',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, DatePipe, DecimalPipe, FormsModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, DatePipe, DecimalPipe, FormsModule, ToastOutletComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
@@ -36,6 +38,7 @@ export class AppComponent implements OnInit {
   private readonly roomService = inject(RoomService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly toast = inject(ToastService);
 
   menuOpen = signal(false);
   showNotif = signal(false);
@@ -104,7 +107,7 @@ export class AppComponent implements OnInit {
 
     const question = this.assistantQuestion.trim();
     if (!question) {
-      this.assistantError.set('Vui lòng nhập câu hỏi cho trợ lý AI.');
+      this.toast.error('Vui lòng nhập câu hỏi cho trợ lý AI.');
       return;
     }
 
@@ -129,7 +132,7 @@ export class AppComponent implements OnInit {
         this.assistantLoading.set(false);
       },
       error: e => {
-        this.assistantError.set(this.formatAssistantError(e.error?.message));
+        this.toast.error(this.formatAssistantError(e.error?.message));
         this.assistantLoading.set(false);
       }
     });

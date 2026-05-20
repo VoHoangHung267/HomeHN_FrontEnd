@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 import { ViewingAppointmentService } from '../../core/services/viewing-appointment.service';
 import { ViewingAppointment, ViewingAppointmentStatus } from '../../core/models';
 
@@ -16,6 +17,7 @@ import { ViewingAppointment, ViewingAppointmentStatus } from '../../core/models'
 export class MyAppointmentsComponent implements OnInit {
   readonly auth = inject(AuthService);
   private readonly appointmentService = inject(ViewingAppointmentService);
+  private readonly toast = inject(ToastService);
 
   appointments = signal<ViewingAppointment[]>([]);
   loading = signal(false);
@@ -34,7 +36,7 @@ export class MyAppointmentsComponent implements OnInit {
         this.loading.set(false);
       },
       error: e => {
-        this.error.set(e.error?.message ?? 'Không tải được danh sách lịch xem phòng');
+        this.toast.error(e.error?.message ?? 'Không tải được danh sách lịch xem phòng');
         this.loading.set(false);
       }
     });
@@ -42,12 +44,14 @@ export class MyAppointmentsComponent implements OnInit {
 
   cancelAppointment(appointment: ViewingAppointment): void {
     if (!this.canCancel(appointment) || !confirm('Huỷ lịch xem phòng này?')) return;
+
     this.appointmentService.cancel(appointment.id).subscribe({
       next: r => {
         this.appointments.update(list => list.map(item => item.id === appointment.id ? r.data : item));
+        this.toast.success('Đã huỷ lịch xem phòng');
       },
       error: e => {
-        this.error.set(e.error?.message ?? 'Không huỷ được lịch xem phòng');
+        this.toast.error(e.error?.message ?? 'Không huỷ được lịch xem phòng');
       }
     });
   }

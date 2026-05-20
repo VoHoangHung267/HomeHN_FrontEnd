@@ -14,6 +14,7 @@ import { ViewingAppointmentService } from '../../../core/services/viewing-appoin
 import { BookingService } from '../../../core/services/booking.service';
 import { Room, GENDER_LABELS, Review } from '../../../core/models';
 import { environment } from '../../../../environments/environment';
+import { ToastService } from '../../../core/services/toast.service';
 
 type ReviewUploadPreview = {
   file: File;
@@ -40,6 +41,7 @@ export class RoomDetailComponent implements OnInit {
   private readonly chatService   = inject(ChatService);
   private readonly http          = inject(HttpClient);
   readonly auth                  = inject(AuthService);
+  private readonly toast         = inject(ToastService);
 
   // â”€â”€ Room â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   room         = signal<Room | null>(null);
@@ -222,6 +224,7 @@ export class RoomDetailComponent implements OnInit {
       next: res => {
         this.bookingSending.set(false);
         this.showBookingModal.set(false);
+        this.toast.success('Đã tạo yêu cầu thuê phòng');
         this.router.navigate(['/bookings', res.data.id]);
       },
       error: e => {
@@ -251,6 +254,7 @@ export class RoomDetailComponent implements OnInit {
       next: () => {
         this.appointmentSending.set(false);
         this.appointmentDone.set(true);
+        this.toast.success('Đã gửi yêu cầu xem phòng');
       },
       error: e => {
         this.appointmentError.set(e.error?.message ?? 'Gửi yêu cầu thất bại');
@@ -476,7 +480,10 @@ export class RoomDetailComponent implements OnInit {
         this.resetReviewForm();
         this.reviewSaving.set(false);
       },
-      error: e => { alert(e.error?.message ?? 'Lỗi gửi đánh giá'); this.reviewSaving.set(false); }
+      error: e => {
+        this.toast.error(e.error?.message ?? 'Lỗi gửi đánh giá');
+        this.reviewSaving.set(false);
+      }
     });
   }
 
@@ -506,8 +513,12 @@ export class RoomDetailComponent implements OnInit {
         this.editingReview.set(false);
         this.resetReviewForm();
         this.reviewSaving.set(false);
+        this.toast.success('Đã cập nhật đánh giá');
       },
-      error: () => this.reviewSaving.set(false)
+      error: e => {
+        this.toast.error(e.error?.message ?? 'Không thể cập nhật đánh giá');
+        this.reviewSaving.set(false);
+      }
     });
   }
 
@@ -518,6 +529,7 @@ export class RoomDetailComponent implements OnInit {
       this.reviews.update(list => list.filter(rv => rv.id !== r.id));
       this.myReview.set(null);
       this.resetReviewForm();
+      this.toast.success('Đã xoá đánh giá');
     });
   }
 }

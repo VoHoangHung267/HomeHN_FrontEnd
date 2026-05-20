@@ -109,9 +109,6 @@
                   <h3>Đặt lịch xem phòng</h3>
                   <p class="card-sub">Gửi yêu cầu hẹn lịch trực tiếp cho chủ nhà trong cuộc trò chuyện này.</p>
 
-                  @if (appointmentInfo()) { <div class="alert alert-success">{{ appointmentInfo() }}</div> }
-                  @if (appointmentError()) { <div class="alert alert-error">{{ appointmentError() }}</div> }
-
                   <div class="form-group">
                     <label class="form-label">Thời gian mong muốn</label>
                     <input type="datetime-local" class="form-control" [(ngModel)]="appointmentAt" />
@@ -179,9 +176,6 @@
                 <div class="action-card">
                   <h3>Tạo yêu cầu thuê phòng</h3>
                   <p class="card-sub">Điền thông tin thuê ngay trong chat, sau đó có thể thanh toán cọc.</p>
-
-                  @if (bookingInfo()) { <div class="alert alert-success">{{ bookingInfo() }}</div> }
-                  @if (bookingError()) { <div class="alert alert-error">{{ bookingError() }}</div> }
 
                   <div class="form-grid">
                     <div class="form-group">

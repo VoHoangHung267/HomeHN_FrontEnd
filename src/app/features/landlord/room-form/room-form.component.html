@@ -5,9 +5,6 @@
       <h1>{{ isEditMode ? 'Chỉnh sửa phòng' : 'Đăng phòng mới' }}</h1>
     </div>
 
-    @if (error()) { <div class="alert alert-error">{{ error() }}</div> }
-    @if (success()) { <div class="alert alert-success">{{ success() }}</div> }
-
     <form (ngSubmit)="onSubmit()" #f="ngForm">
       <div class="form-sections">
         <div class="form-section">
