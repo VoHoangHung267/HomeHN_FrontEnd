@@ -64,9 +64,10 @@
   <div class="nav-actions">
     @if (auth.isLoggedIn()) {
       <div class="user-menu" (click)="toggleMenu()">
-        <img [src]="auth.user()?.avatarUrl || 'assets/avatar-default.png'"
-             [alt]="auth.user()?.fullName"
-             class="avatar" />
+        <img
+          [src]="auth.user()?.avatarUrl || 'assets/avatar-default.png'"
+          [alt]="auth.user()?.fullName"
+          class="avatar" />
         <span class="user-name">{{ auth.user()?.fullName }}</span>
         <span class="chevron">{{ menuOpen() ? '▲' : '▼' }}</span>
 
@@ -104,14 +105,18 @@
 <app-toast-outlet />
 
 <button class="global-assistant-fab" (click)="toggleAssistant()" [class.open]="assistantOpen()" title="Trợ lý AI">
-  {{ assistantOpen() ? '✕' : 'AI' }}
+  @if (assistantOpen()) {
+    ✕
+  } @else {
+    <span class="assistant-fab-icon" aria-hidden="true">🤖</span>
+  }
 </button>
 
 @if (assistantOpen()) {
   <div class="global-assistant-widget">
     <div class="global-assistant-header">
       <div>
-        <div class="global-assistant-title">Trợ lý HomeHN AI</div>
+        <div class="global-assistant-title">Trợ lý HomeHN 🤖</div>
         <div class="global-assistant-sub">Tìm phòng, đăng phòng, lịch hẹn, chỉ đường trong website</div>
       </div>
       <button class="global-assistant-close" (click)="toggleAssistant()">✕</button>
@@ -121,7 +126,7 @@
       <div class="assistant-thread">
         @for (message of assistantMessages(); track $index) {
           <div class="assistant-msg-row" [class.mine]="message.role === 'user'">
-            <div class="assistant-avatar">{{ message.role === 'assistant' ? 'AI' : 'Bạn' }}</div>
+            <div class="assistant-avatar">{{ message.role === 'assistant' ? '🤖' : '🙂' }}</div>
             <div class="assistant-bubble" [class.mine]="message.role === 'user'">
               <div class="assistant-text">{{ message.text }}</div>
               @if (message.note) {
@@ -136,7 +141,10 @@
                 <div class="assistant-room-list">
                   @for (room of message.suggestedRooms; track room.id) {
                     <button class="assistant-room-card" (click)="openSuggestedRoom(room.id)">
-                      <img [src]="room.primaryImageUrl || 'assets/room-placeholder.jpg'" [alt]="room.title" class="assistant-room-thumb" />
+                      <img
+                        [src]="room.primaryImageUrl || 'assets/room-placeholder.jpg'"
+                        [alt]="room.title"
+                        class="assistant-room-thumb" />
                       <div class="assistant-room-body">
                         <div class="assistant-room-title">{{ room.title }}</div>
                         <div class="assistant-room-meta">{{ room.district }}, {{ room.city }} · {{ room.area }}m²</div>
@@ -152,7 +160,7 @@
 
         @if (assistantLoading()) {
           <div class="assistant-msg-row">
-            <div class="assistant-avatar">AI</div>
+            <div class="assistant-avatar">🤖</div>
             <div class="assistant-bubble">
               <div class="assistant-typing">
                 <span></span><span></span><span></span>
@@ -169,9 +177,12 @@
       </div>
 
       <div class="assistant-input-wrap">
-        <textarea class="form-control assistant-input" rows="3" [(ngModel)]="assistantQuestion"
-                  placeholder="Nhập câu hỏi của bạn..."
-                  (keydown)="onAssistantKeydown($event)"></textarea>
+        <textarea
+          class="form-control assistant-input"
+          rows="3"
+          [(ngModel)]="assistantQuestion"
+          placeholder="Nhập câu hỏi của bạn..."
+          (keydown)="onAssistantKeydown($event)"></textarea>
         <button class="btn btn-primary assistant-send-btn" (click)="askAssistant()" [disabled]="assistantLoading()">
           Gửi
         </button>

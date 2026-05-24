@@ -6,7 +6,6 @@ import {
   signal
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService, ProfileStats } from '../../core/services/profile.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -16,7 +15,7 @@ import { User } from '../../core/models';
   selector: 'app-profile',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, DatePipe],
+  imports: [FormsModule],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
 })
@@ -161,5 +160,21 @@ export class ProfileComponent implements OnInit {
 
   isLandlordView(): boolean {
     return this.profile()?.role === 'LANDLORD';
+  }
+
+  joinedSinceLabel(createdAt?: string | null): string {
+    if (!createdAt) {
+      return '--';
+    }
+
+    const date = new Date(createdAt);
+    if (Number.isNaN(date.getTime())) {
+      return '--';
+    }
+
+    return new Intl.DateTimeFormat('vi-VN', {
+      month: '2-digit',
+      year: 'numeric'
+    }).format(date);
   }
 }

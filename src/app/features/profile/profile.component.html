@@ -7,8 +7,10 @@
         <aside class="profile-sidebar">
           <div class="avatar-section">
             <div class="avatar-wrap" (click)="fileInput.click()">
-              <img [src]="avatarPreview() || p.avatarUrl || 'assets/avatar-default.png'"
-                   class="profile-avatar" [alt]="p.fullName" />
+              <img
+                [src]="avatarPreview() || p.avatarUrl || 'assets/avatar-default.png'"
+                class="profile-avatar"
+                [alt]="p.fullName" />
               <div class="avatar-overlay">
                 <span>Thay ảnh</span>
               </div>
@@ -99,8 +101,11 @@
               <div class="form-group">
                 <label class="form-label">Mật khẩu hiện tại *</label>
                 <div class="password-wrap">
-                  <input [type]="showCurrent() ? 'text' : 'password'" class="form-control"
-                         [(ngModel)]="currentPwd" placeholder="••••••••" />
+                  <input
+                    [type]="showCurrent() ? 'text' : 'password'"
+                    class="form-control"
+                    [(ngModel)]="currentPwd"
+                    placeholder="••••••••" />
                   <button type="button" class="pwd-toggle" (click)="showCurrent.update(v => !v)">
                     {{ showCurrent() ? '🙈' : '👁️' }}
                   </button>
@@ -110,8 +115,11 @@
               <div class="form-group">
                 <label class="form-label">Mật khẩu mới *</label>
                 <div class="password-wrap">
-                  <input [type]="showNew() ? 'text' : 'password'" class="form-control"
-                         [(ngModel)]="newPwd" placeholder="Ít nhất 8 ký tự" />
+                  <input
+                    [type]="showNew() ? 'text' : 'password'"
+                    class="form-control"
+                    [(ngModel)]="newPwd"
+                    placeholder="Ít nhất 8 ký tự" />
                   <button type="button" class="pwd-toggle" (click)="showNew.update(v => !v)">
                     {{ showNew() ? '🙈' : '👁️' }}
                   </button>
@@ -120,8 +128,11 @@
 
               <div class="form-group">
                 <label class="form-label">Xác nhận mật khẩu mới *</label>
-                <input type="password" class="form-control" [(ngModel)]="confirmPwd"
-                       placeholder="Nhập lại mật khẩu mới" />
+                <input
+                  type="password"
+                  class="form-control"
+                  [(ngModel)]="confirmPwd"
+                  placeholder="Nhập lại mật khẩu mới" />
                 @if (confirmPwd && newPwd !== confirmPwd) {
                   <span class="form-error">Mật khẩu không khớp</span>
                 }
@@ -183,8 +194,8 @@
                       <div class="stat-lbl">Đơn thuê phòng</div>
                     </div>
                     <div class="stat-box">
-                      <div class="stat-icon">📆</div>
-                      <div class="stat-num">{{ p.createdAt | date:'MM/yyyy' : undefined : 'vi' }}</div>
+                      <div class="stat-icon">📅</div>
+                      <div class="stat-num">{{ joinedSinceLabel(p.createdAt) }}</div>
                       <div class="stat-lbl">Tham gia từ</div>
                     </div>
                   }

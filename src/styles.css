@@ -2461,6 +2461,14 @@ textarea.form-control {
   box-shadow: 0 20px 40px rgba(26, 111, 219, 0.28);
 }
 
+.assistant-fab-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
 .global-assistant-fab.open {
   background: linear-gradient(135deg, var(--color-accent), #ff855b);
 }
@@ -2525,7 +2533,7 @@ textarea.form-control {
   border-radius: 50%;
   background: var(--color-primary-soft);
   color: var(--color-primary);
-  font-size: 0.76rem;
+  font-size: 1rem;
   font-weight: 800;
   flex-shrink: 0;
 }
