@@ -935,7 +935,8 @@ textarea.form-control {
 }
 
 .sort-select {
-  min-width: 180px;
+  width: auto;
+  min-width: 140px;
   flex-shrink: 0;
 }
 
