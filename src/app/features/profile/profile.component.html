@@ -70,6 +70,7 @@
                 <div class="form-group">
                   <label class="form-label">Họ và tên *</label>
                   <input type="text" class="form-control" [(ngModel)]="fullName" placeholder="Nguyễn Văn A" />
+                  <span class="form-hint form-hint-placeholder" aria-hidden="true">&nbsp;</span>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Email</label>
@@ -79,10 +80,12 @@
                 <div class="form-group">
                   <label class="form-label">Số điện thoại</label>
                   <input type="tel" class="form-control" [(ngModel)]="phone" placeholder="0912345678" />
+                  <span class="form-hint form-hint-placeholder" aria-hidden="true">&nbsp;</span>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Vai trò</label>
                   <input type="text" class="form-control" [value]="roleLabel()" disabled />
+                  <span class="form-hint form-hint-placeholder" aria-hidden="true">&nbsp;</span>
                 </div>
               </div>
 
@@ -193,9 +196,9 @@
                       <div class="stat-num">{{ s.totalBookings }}</div>
                       <div class="stat-lbl">Đơn thuê phòng</div>
                     </div>
-                    <div class="stat-box">
+                    <div class="stat-box stat-box-joined">
                       <div class="stat-icon">📅</div>
-                      <div class="stat-num">{{ joinedSinceLabel(p.createdAt) }}</div>
+                      <div class="stat-num stat-num-joined">{{ joinedSinceLabel(p.createdAt) }}</div>
                       <div class="stat-lbl">Tham gia từ</div>
                     </div>
                   }
