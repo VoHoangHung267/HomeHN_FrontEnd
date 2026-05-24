@@ -3,8 +3,12 @@
     <h1>Tìm phòng trọ phù hợp với bạn</h1>
     <p>Hàng nghìn phòng trọ tại Hà Nội và các tỉnh thành lớn</p>
     <div class="search-bar">
-      <input type="text" class="search-input" [(ngModel)]="filter.keyword"
-             placeholder="Tìm theo tên, địa chỉ, phường/xã..." (keyup.enter)="applyFilter()" />
+      <input
+        type="text"
+        class="search-input"
+        [(ngModel)]="filter.keyword"
+        placeholder="Tìm theo tên, địa chỉ, phường/xã..."
+        (keyup.enter)="applyFilter()" />
       <button class="btn btn-primary" (click)="applyFilter()">🔍 Tìm kiếm</button>
     </div>
   </div>
@@ -37,12 +41,29 @@
 
           <div class="filter-section">
             <label class="filter-label">Khoảng giá (VNĐ/tháng)</label>
-            <div class="range-inputs">
-              <input type="number" class="form-control" [(ngModel)]="filter.minPrice"
-                     placeholder="Từ" step="500000" />
-              <span>—</span>
-              <input type="number" class="form-control" [(ngModel)]="filter.maxPrice"
-                     placeholder="Đến" step="500000" />
+            <div class="price-slider-group">
+              <div class="price-slider-values">
+                <span>{{ priceLabel(filter.minPrice, '0đ') }}</span>
+                <span>{{ priceLabel(filter.maxPrice, '20.000.000đ') }}</span>
+              </div>
+              <div class="price-slider-stack">
+                <input
+                  type="range"
+                  class="price-slider"
+                  [ngModel]="filter.minPrice ?? priceMinLimit"
+                  (ngModelChange)="onMinPriceChange($event)"
+                  [min]="priceMinLimit"
+                  [max]="priceMaxLimit"
+                  [step]="priceStep" />
+                <input
+                  type="range"
+                  class="price-slider"
+                  [ngModel]="filter.maxPrice ?? priceMaxLimit"
+                  (ngModelChange)="onMaxPriceChange($event)"
+                  [min]="priceMinLimit"
+                  [max]="priceMaxLimit"
+                  [step]="priceStep" />
+              </div>
             </div>
           </div>
 
@@ -84,10 +105,11 @@
             <p>Mô tả ngắn điều bạn cần, AI sẽ tự điền bộ lọc phù hợp rồi tìm phòng cho bạn.</p>
           </div>
           <div class="ai-search-controls">
-            <textarea class="form-control ai-search-input"
-                      [(ngModel)]="aiSearchQuery"
-                      rows="3"
-                      placeholder="Ví dụ: cần phòng dưới 4 triệu ở Cầu Giấy, có điều hòa, ở được 2 người, ưu tiên studio gần trường"></textarea>
+            <textarea
+              class="form-control ai-search-input"
+              [(ngModel)]="aiSearchQuery"
+              rows="3"
+              placeholder="Ví dụ: cần phòng dưới 4 triệu ở Cầu Giấy, có điều hòa, ở được 2 người, ưu tiên studio gần trường"></textarea>
             <div class="ai-search-actions">
               <button class="btn btn-primary" (click)="applyAiSearch()" [disabled]="aiSearchLoading()">
                 @if (aiSearchLoading()) { Đang phân tích... } @else { Dùng AI để lọc }
@@ -146,10 +168,11 @@
             @for (room of rooms(); track room.id) {
               <div class="room-card" (click)="goToDetail(room.id)">
                 <div class="room-image">
-                  <img [src]="room.primaryImageUrl || 'assets/room-placeholder.jpg'"
-                       [alt]="room.title" loading="lazy" />
-                  <button class="room-fav" (click)="toggleFav($event, room)"
-                          [title]="room.favorited ? 'Bỏ yêu thích' : 'Lưu yêu thích'">
+                  <img [src]="room.primaryImageUrl || 'assets/room-placeholder.jpg'" [alt]="room.title" loading="lazy" />
+                  <button
+                    class="room-fav"
+                    (click)="toggleFav($event, room)"
+                    [title]="room.favorited ? 'Bỏ yêu thích' : 'Lưu yêu thích'">
                     {{ room.favorited ? '❤️' : '🤍' }}
                   </button>
                   <span class="room-type-badge">{{ roomTypeLabel(room.roomType) }}</span>
@@ -183,8 +206,7 @@
             @for (p of pageNumbers(); track p) {
               <button [class.active]="p === currentPage()" (click)="changePage(p)">{{ p + 1 }}</button>
             }
-            <button (click)="changePage(currentPage() + 1)"
-                    [disabled]="currentPage() >= totalPages() - 1">›</button>
+            <button (click)="changePage(currentPage() + 1)" [disabled]="currentPage() >= totalPages() - 1">›</button>
           </div>
         }
 

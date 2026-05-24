@@ -43,6 +43,9 @@ export class RoomListComponent implements OnInit {
   readonly districts = DISTRICTS_HN;
   readonly roomTypes = ROOM_TYPE_LABELS;
   readonly skeletons = Array(8);
+  readonly priceMinLimit = 0;
+  readonly priceMaxLimit = 20_000_000;
+  readonly priceStep = 100_000;
 
   pageNumbers = computed(() => {
     const cur = this.currentPage();
@@ -158,6 +161,29 @@ export class RoomListComponent implements OnInit {
     return GENDER_LABELS[g] ?? g;
   }
 
+  onMinPriceChange(value: number): void {
+    const next = this.normalizePrice(value);
+    const currentMax = this.filter.maxPrice ?? this.priceMaxLimit;
+    this.filter = {
+      ...this.filter,
+      minPrice: Math.min(next, currentMax)
+    };
+  }
+
+  onMaxPriceChange(value: number): void {
+    const next = this.normalizePrice(value);
+    const currentMin = this.filter.minPrice ?? this.priceMinLimit;
+    this.filter = {
+      ...this.filter,
+      maxPrice: Math.max(next, currentMin)
+    };
+  }
+
+  priceLabel(value: number | undefined, fallback: string): string {
+    if (value === undefined || value === null) return fallback;
+    return `${value.toLocaleString('vi-VN')}đ`;
+  }
+
   private applyAiSearchResult(data: AiSearchResult): void {
     this.filter = {
       ...this.filter,
@@ -172,5 +198,11 @@ export class RoomListComponent implements OnInit {
       genderRequirement: data.genderRequirement ?? undefined,
       sortBy: data.sortBy ?? 'createdAt'
     };
+  }
+
+  private normalizePrice(value: number): number {
+    if (!Number.isFinite(value)) return this.priceMinLimit;
+    const clamped = Math.min(this.priceMaxLimit, Math.max(this.priceMinLimit, value));
+    return Math.round(clamped / this.priceStep) * this.priceStep;
   }
 }
