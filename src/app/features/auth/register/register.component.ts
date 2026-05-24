@@ -192,7 +192,7 @@ export class RegisterComponent {
       next: ({ message }) => {
         this.codeSent.set(true);
         this.emailExists.set(false);
-        this.emailHint.set('Da gui ma xac thuc toi email cua ban.');
+        this.emailHint.set('Đã gửi mã xác thực tới email của bạn.');
         this.toast.success(message || 'Đã gửi mã xác thực tới email của bạn');
         this.sendingCode.set(false);
       },

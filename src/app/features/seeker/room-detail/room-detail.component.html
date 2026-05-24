@@ -222,7 +222,7 @@
             }
           </div>
           } @else {
-          <!-- ?? c? review ? hi?n + cho s?a -->
+          <!-- Có review hiện có, cho sửa -->
           <div class="my-review-card">
             <div class="my-review-header">
               <span class="my-review-label">Đánh giá của bạn</span>
@@ -418,9 +418,9 @@
         </div>
         <div class="report-card">
           @if (!reportDone()) {
-          <button class="btn-text danger" (click)="openReport()">âš‘ Báo cáo tin đểng này</button>
+          <button class="btn-text danger" (click)="openReport()">&#9873; Báo cáo tin đăng này</button>
           } @else {
-          <div class="report-sent">? ?? g?i b?o c?o, ch?ng t?i s? xem x?t s?m</div>
+          <div class="report-sent">Đã gửi báo cáo, chúng tôi sẽ xem xét sớm.</div>
           }
         </div>
       </div>
@@ -430,7 +430,7 @@
   <div class="modal-overlay" (click)="showReportModal.set(false)">
     <div class="modal-box" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>Báo cáo tin đểng</h3>
+        <h3>Báo cáo tin đăng</h3>
         <button class="modal-close" (click)="showReportModal.set(false)">✕</button>
       </div>
 
