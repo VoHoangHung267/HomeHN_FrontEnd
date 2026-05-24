@@ -1370,6 +1370,8 @@ textarea.form-control {
   margin-top: 24px;
   display: grid;
   gap: 18px;
+  grid-column: 1;
+  align-content: start;
 }
 
 .reviews-header,
@@ -1377,6 +1379,24 @@ textarea.form-control {
 .review-list {
   display: grid;
   gap: 16px;
+}
+
+.reviews-header {
+  padding: 22px 24px;
+  border-radius: var(--radius-card);
+  background:
+    linear-gradient(135deg, rgba(26, 111, 219, 0.08), rgba(255, 107, 53, 0.08)),
+    var(--color-surface);
+  border: 1px solid rgba(219, 228, 239, 0.92);
+  box-shadow: var(--shadow-sm);
+}
+
+.reviews-header h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.28rem;
 }
 
 .review-avg,
@@ -1397,6 +1417,14 @@ textarea.form-control {
 .review-list {
   display: grid;
   gap: 14px;
+}
+
+.rating-bar {
+  padding: 20px 22px;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  border: 1px solid rgba(219, 228, 239, 0.88);
+  box-shadow: var(--shadow-sm);
 }
 
 .rating-row {
@@ -1425,6 +1453,19 @@ textarea.form-control {
   padding: 20px;
 }
 
+.review-form-card,
+.my-review-card {
+  display: grid;
+  gap: 16px;
+}
+
+.review-form-card h4,
+.my-review-label {
+  font-size: 1rem;
+  font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+  color: var(--color-text);
+}
+
 .star-input {
   display: flex;
   align-items: center;
@@ -1439,11 +1480,13 @@ textarea.form-control {
 
 .star-label {
   color: var(--color-text-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
 }
 
 .review-media-preview,
 .review-media-gallery {
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
 }
 
 .media-preview-item,
@@ -1452,7 +1495,17 @@ textarea.form-control {
   overflow: hidden;
   border-radius: 14px;
   background: #e4ebf3;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 3;
+  border: 1px solid rgba(219, 228, 239, 0.84);
+}
+
+.media-preview-item img,
+.media-preview-item video,
+.review-media-item img,
+.review-media-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .remove-media-btn {
@@ -1472,7 +1525,7 @@ textarea.form-control {
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) auto;
   gap: 14px;
-  align-items: center;
+  align-items: start;
 }
 
 .reviewer-avatar {
@@ -1484,6 +1537,89 @@ textarea.form-control {
 
 .reviewer-name {
   font-weight: 700;
+}
+
+.reviewer-info {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.review-rating-main {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  min-width: 72px;
+}
+
+.stars-display,
+.review-stars {
+  letter-spacing: 0.08em;
+}
+
+.review-comment,
+.review-body {
+  line-height: 1.7;
+}
+
+.review-item {
+  display: grid;
+  gap: 14px;
+}
+
+.my-review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.my-review-actions,
+.review-form-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.review-form-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.criteria-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--color-surface-alt);
+}
+
+.criteria-row.main-rating {
+  background: linear-gradient(135deg, rgba(26, 111, 219, 0.08), rgba(255, 107, 53, 0.06));
+}
+
+.criteria-label {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.clear-sub {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: var(--color-danger);
+  background: rgba(220, 76, 100, 0.12);
+  cursor: pointer;
 }
 
 .sub-ratings-display {
@@ -1499,8 +1635,11 @@ textarea.form-control {
   min-height: 30px;
   padding: 0 10px;
   border-radius: 999px;
-  background: var(--color-surface-alt);
-  color: var(--color-text-muted);
+  background: linear-gradient(135deg, rgba(26, 111, 219, 0.1), rgba(255, 107, 53, 0.12));
+  color: var(--color-text);
+  border: 1px solid rgba(219, 228, 239, 0.88);
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .modal-overlay {
@@ -1635,35 +1774,49 @@ textarea.form-control {
 
 .room-item {
   display: grid;
-  grid-template-columns: 62px minmax(0, 1fr) 36px;
-  gap: 12px;
+  grid-template-columns: 96px minmax(0, 1fr) 40px;
+  gap: 14px;
   align-items: center;
-  padding: 10px;
-  border-radius: 14px;
+  padding: 12px;
+  border-radius: 16px;
   cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
 }
 
 .room-item:hover,
 .room-item.selected {
   background: var(--color-primary-soft);
+  border-color: rgba(26, 111, 219, 0.18);
+  box-shadow: 0 12px 24px rgba(15, 35, 64, 0.08);
+  transform: translateY(-1px);
 }
 
 .room-item-img {
-  width: 62px;
-  aspect-ratio: 16 / 10;
+  width: 96px;
+  height: 64px;
   border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 10px 18px rgba(15, 35, 64, 0.1);
 }
 
 .room-item-price {
   color: var(--color-primary);
   font-weight: 800;
+  font-size: 1rem;
 }
 
 .room-item-title {
   font-weight: 700;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .room-item-loc {
+  margin-top: 4px;
   color: var(--color-text-muted);
   font-size: 0.88rem;
 }
@@ -1679,6 +1832,75 @@ textarea.form-control {
 
 .map-container {
   min-height: calc(100vh - var(--nav-height));
+}
+
+.leaflet-marker-icon,
+.leaflet-div-icon {
+  background: transparent;
+  border: 0;
+}
+
+.map-marker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--color-primary), #3f8dff);
+  color: #fff;
+  font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  border: 3px solid rgba(255, 255, 255, 0.96);
+  box-shadow: 0 14px 28px rgba(26, 111, 219, 0.28);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.map-marker::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 14px;
+  height: 14px;
+  background: inherit;
+  border-right: 3px solid rgba(255, 255, 255, 0.96);
+  border-bottom: 3px solid rgba(255, 255, 255, 0.96);
+  transform: translateX(-50%) rotate(45deg);
+  border-bottom-right-radius: 4px;
+}
+
+.map-marker:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 18px 34px rgba(26, 111, 219, 0.34);
+}
+
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background: rgba(31, 169, 113, 0.16);
+  border: 0;
+  box-shadow: 0 10px 24px rgba(31, 169, 113, 0.18);
+}
+
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7ed957, #58b947);
+  color: #14311f;
+  font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+  font-weight: 800;
+  border: 3px solid rgba(255, 255, 255, 0.96);
 }
 
 .leaflet-popup-content-wrapper {
@@ -2206,6 +2428,11 @@ textarea.form-control {
   .map-container {
     min-height: 420px;
   }
+
+  .criteria-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 480px) {
@@ -2236,6 +2463,24 @@ textarea.form-control {
 
   .gallery-thumbs {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .room-item {
+    grid-template-columns: 84px minmax(0, 1fr) 36px;
+    gap: 12px;
+  }
+
+  .room-item-img {
+    width: 84px;
+    height: 58px;
+  }
+
+  .reviews-header,
+  .rating-bar,
+  .review-form-card,
+  .my-review-card,
+  .review-item {
+    padding: 16px;
   }
 
   .modal-overlay {
