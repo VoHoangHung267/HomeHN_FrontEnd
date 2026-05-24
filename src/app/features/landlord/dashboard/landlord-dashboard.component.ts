@@ -73,7 +73,7 @@ export class LandlordDashboardComponent implements OnInit {
   }
 
   markAvailable(room: Room): void {
-    if (!confirm(`Đánh dấu phòng "${room.title}" còn trđng?`)) return;
+    if (!confirm(`Đánh dấu phòng "${room.title}" còn trống?`)) return;
     this.updateRoomStatus(room, 'ACTIVE');
   }
 
