@@ -2511,6 +2511,7 @@ textarea.form-control {
 
 .data-table td {
   border-bottom: 1px solid rgba(219, 228, 239, 0.56);
+  vertical-align: middle;
 }
 
 .data-table tbody tr:hover td {
@@ -2698,6 +2699,40 @@ textarea.form-control {
   font-family: 'Be Vietnam Pro', sans-serif;
 }
 
+.room-row {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+}
+
+.room-thumb {
+  width: 148px;
+  height: 104px;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+}
+
+.room-row-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 1.16rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--color-text);
+}
+
+.room-row-loc {
+  margin-top: 6px;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+}
+
 .row-hidden td {
   background: linear-gradient(180deg, rgba(248, 250, 252, 0.84), rgba(244, 247, 251, 0.88));
 }
@@ -2734,10 +2769,12 @@ textarea.form-control {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .action-btns .btn {
   min-height: 38px;
+  min-width: 72px;
   padding-inline: 14px;
   border-radius: 12px;
   font-weight: 800;
@@ -2764,6 +2801,14 @@ textarea.form-control {
 
 .action-btns .btn-warning:hover {
   color: #513400;
+}
+
+.table-card .data-table th:first-child {
+  min-width: 420px;
+}
+
+.table-card .data-table td:first-child {
+  min-width: 420px;
 }
 
 .report-filter {
