@@ -186,13 +186,7 @@ button.btn {
   line-height: 1;
   cursor: pointer;
   user-select: none;
-  transition:
-    transform var(--transition-fast),
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    opacity var(--transition-fast);
+  transition: transform var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
 }
 
 .btn:hover {
@@ -334,10 +328,7 @@ button.btn {
   border-radius: var(--radius-control);
   background: #fff;
   color: var(--color-text);
-  transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    background-color var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
 }
 
 .form-control::placeholder,
@@ -354,12 +345,6 @@ button.btn {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-ring);
   outline: none;
-}
-
-/* Error state */
-.form-control.has-error {
-  border-color: var(--color-danger);
-  box-shadow: 0 0 0 3px rgba(220, 76, 100, 0.12);
 }
 
 select.form-control {
@@ -466,10 +451,7 @@ textarea.form-control {
   border-radius: var(--radius-pill);
   color: var(--color-text-muted);
   font-weight: 600;
-  transition:
-    background-color var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 
 .nav-links a:hover,
@@ -485,123 +467,6 @@ textarea.form-control {
   margin-left: auto;
 }
 
-/* Hamburger button — mobile only */
-.nav-hamburger {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid rgba(219, 228, 239, 0.9);
-  border-radius: var(--radius-control);
-  background: #fff;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.nav-hamburger span {
-  display: block;
-  width: 20px;
-  height: 2px;
-  background: var(--color-text);
-  border-radius: 2px;
-  transition: transform var(--transition-fast), opacity var(--transition-fast);
-  position: relative;
-}
-
-.nav-hamburger span::before,
-.nav-hamburger span::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: inherit;
-  border-radius: inherit;
-  transition: inherit;
-}
-
-.nav-hamburger span::before { top: -6px; }
-.nav-hamburger span::after  { top: 6px; }
-
-.nav-hamburger.open span       { background: transparent; }
-.nav-hamburger.open span::before { transform: translateY(6px) rotate(45deg); }
-.nav-hamburger.open span::after  { transform: translateY(-6px) rotate(-45deg); }
-
-/* ========================================
-   Mobile Nav Drawer
-======================================== */
-.nav-drawer {
-  position: fixed;
-  inset: 0;
-  z-index: 1400;
-  display: flex;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.nav-drawer.open {
-  visibility: visible;
-  pointer-events: auto;
-}
-
-.nav-drawer-backdrop {
-  flex: 1;
-  background: rgba(18, 34, 55, 0.44);
-  backdrop-filter: blur(4px);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.nav-drawer.open .nav-drawer-backdrop {
-  opacity: 1;
-}
-
-.nav-drawer-panel {
-  width: min(300px, 85vw);
-  height: 100%;
-  padding: 28px 20px;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  box-shadow: var(--shadow-lg);
-  transform: translateX(-100%);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow-y: auto;
-}
-
-.nav-drawer.open .nav-drawer-panel {
-  transform: translateX(0);
-}
-
-.nav-drawer-panel a {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 48px;
-  padding: 12px 16px;
-  border-radius: var(--radius-control);
-  color: var(--color-text-muted);
-  font-weight: 600;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
-}
-
-.nav-drawer-panel a:hover,
-.nav-drawer-panel a.active {
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-}
-
-.nav-drawer-divider {
-  height: 1px;
-  background: rgba(219, 228, 239, 0.72);
-  margin: 10px 0;
-}
-
-/* ========================================
-   Badges & Chips
-======================================== */
 .badge,
 .notif-badge {
   position: absolute;
@@ -618,30 +483,6 @@ textarea.form-control {
   color: #fff;
   font-size: 0.7rem;
   font-weight: 700;
-}
-
-/* Status badges */
-.status-badge {
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-
-.status-badge.available {
-  background: var(--color-success-soft);
-  color: var(--color-success);
-  border: 1px solid rgba(31, 169, 113, 0.18);
-}
-
-.status-badge.rented {
-  background: var(--color-surface-alt);
-  color: var(--color-text-soft);
-  border: 1px solid rgba(219, 228, 239, 0.8);
-}
-
-.status-badge.pending {
-  background: var(--color-warning-soft);
-  color: #a07818;
-  border: 1px solid rgba(245, 185, 66, 0.22);
 }
 
 .notif-wrap,
@@ -1085,6 +926,7 @@ textarea.form-control {
   gap: 10px;
   flex-wrap: nowrap;
   white-space: nowrap;
+  margin-left: auto;
 }
 
 .sort-wrap label {
@@ -1094,14 +936,12 @@ textarea.form-control {
 }
 
 .sort-select {
-  width: auto;
-  min-width: 180px;
-  flex-shrink: 0;
+  width: 160px;
+  min-width: 160px;
+  max-width: 160px;
+  flex: 0 0 160px;
 }
 
-/* ========================================
-   Empty States
-======================================== */
 .empty-state,
 .no-reviews,
 .no-rooms {
@@ -1157,7 +997,6 @@ textarea.form-control {
   background: linear-gradient(135deg, #edf2f8, #dce5f0);
 }
 
-/* Lazy-load blur-up effect */
 .room-image img,
 .room-item-img,
 .assistant-room-thumb,
@@ -1171,38 +1010,13 @@ textarea.form-control {
 }
 
 .room-image img {
-  filter: blur(8px);
-  transition: filter 0.4s ease, transform 0.45s ease;
-}
-
-.room-image img.loaded {
-  filter: blur(0);
+  transition: transform 0.45s ease;
 }
 
 .room-card:hover .room-image img {
   transform: scale(1.04);
 }
 
-/* Price badge — accent orange, top left */
-.room-price-badge {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 14px;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  color: #fff;
-  font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 0.88rem;
-  font-weight: 800;
-  box-shadow: 0 6px 16px rgba(255, 107, 53, 0.28);
-}
-
-/* Room type badge — bottom left */
 .room-type-badge {
   position: absolute;
   left: 16px;
@@ -1217,14 +1031,6 @@ textarea.form-control {
   color: #fff;
   font-size: 0.78rem;
   font-weight: 700;
-}
-
-/* Status badge — top right (below fav) */
-.room-status-badge {
-  position: absolute;
-  top: 14px;
-  right: 64px;
-  z-index: 2;
 }
 
 .room-fav,
@@ -1249,11 +1055,6 @@ textarea.form-control {
 .btn-fav:hover {
   transform: scale(1.2);
   background: #fff;
-}
-
-.room-fav.active,
-.btn-fav.active {
-  color: var(--color-danger);
 }
 
 .room-body {
@@ -1399,11 +1200,8 @@ textarea.form-control {
   font-weight: 700;
 }
 
-/* Gallery thumbnails — visible on desktop */
 .gallery-thumbs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
-  gap: 10px;
+  display: none;
 }
 
 .thumb {
@@ -1412,10 +1210,7 @@ textarea.form-control {
   overflow: hidden;
   border: 2px solid transparent;
   cursor: pointer;
-  transition:
-    border-color var(--transition-fast),
-    transform var(--transition-fast),
-    box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .thumb.active {
@@ -1506,9 +1301,7 @@ textarea.form-control {
   gap: 12px;
 }
 
-/* Amenity with tooltip */
 .amenity-item {
-  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -1516,44 +1309,6 @@ textarea.form-control {
   padding: 12px 14px;
   border-radius: 14px;
   background: var(--color-surface-alt);
-}
-
-.amenity-item[data-tooltip]::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 6px 10px;
-  border-radius: 8px;
-  background: var(--color-text);
-  color: #fff;
-  font-size: 0.78rem;
-  font-weight: 500;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  z-index: 10;
-}
-
-.amenity-item[data-tooltip]::before {
-  content: '';
-  position: absolute;
-  bottom: calc(100% + 2px);
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: var(--color-text);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  z-index: 10;
-}
-
-.amenity-item:hover[data-tooltip]::after,
-.amenity-item:hover[data-tooltip]::before {
-  opacity: 1;
 }
 
 .description {
@@ -1952,9 +1707,6 @@ textarea.form-control {
   font-weight: 600;
 }
 
-/* ========================================
-   Modals & Overlays
-======================================== */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -2113,11 +1865,7 @@ textarea.form-control {
   border-radius: 16px;
   cursor: pointer;
   border: 1px solid transparent;
-  transition:
-    transform var(--transition-fast),
-    box-shadow var(--transition-fast),
-    background var(--transition-fast),
-    border-color var(--transition-fast);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
 }
 
 .room-item:hover,
@@ -2416,11 +2164,7 @@ textarea.form-control {
   text-align: left;
   font-weight: 700;
   cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast);
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 
 .profile-nav button:hover {
@@ -2559,6 +2303,11 @@ textarea.form-control {
   letter-spacing: 0.01em;
 }
 
+.stat-lbl {
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
 /* ========================================
    Auth & Data Views
 ======================================== */
@@ -2622,6 +2371,25 @@ textarea.form-control {
   background: var(--color-primary-soft);
 }
 
+.password-wrap {
+  position: relative;
+}
+
+.password-wrap .form-control {
+  padding-right: 48px;
+}
+
+.pwd-toggle {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
 .strength-wrap {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -2641,10 +2409,21 @@ textarea.form-control {
   border-radius: inherit;
 }
 
-.strength-fill.weak   { background: var(--color-danger); }
-.strength-fill.fair   { background: var(--color-warning); }
-.strength-fill.good   { background: #41b883; }
-.strength-fill.strong { background: var(--color-primary); }
+.strength-fill.weak {
+  background: var(--color-danger);
+}
+
+.strength-fill.fair {
+  background: var(--color-warning);
+}
+
+.strength-fill.good {
+  background: #41b883;
+}
+
+.strength-fill.strong {
+  background: var(--color-primary);
+}
 
 .auth-footer {
   margin-top: 12px;
@@ -2860,9 +2639,6 @@ textarea.form-control {
   font-weight: 800;
 }
 
-/* ========================================
-   Toast Notifications
-======================================== */
 .toast-stack {
   position: fixed;
   right: 20px;
@@ -2887,7 +2663,7 @@ textarea.form-control {
 }
 
 /* ========================================
-   Loading States & Motion
+   Loading & Motion
 ======================================== */
 .skeleton {
   background: linear-gradient(90deg, #edf1f6 20%, #f6f8fb 42%, #edf1f6 65%);
@@ -2896,7 +2672,6 @@ textarea.form-control {
   animation: shimmer 1.4s linear infinite;
 }
 
-/* Reveal on scroll (Intersection Observer) */
 .reveal {
   opacity: 0;
   transform: translateY(18px);
@@ -2906,24 +2681,6 @@ textarea.form-control {
 .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
-}
-
-/* ========================================
-   Filter Bottom Sheet — mobile
-======================================== */
-.filter-sheet-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 1300;
-  background: rgba(18, 34, 55, 0.44);
-  backdrop-filter: blur(4px);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.filter-sheet-overlay.open {
-  opacity: 1;
 }
 
 /* ========================================
@@ -2941,7 +2698,10 @@ textarea.form-control {
     padding-block: 64px;
   }
 
-  .rooms-grid {
+  .rooms-grid,
+  .detail-layout,
+  .map-page,
+  .layout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -2962,11 +2722,7 @@ textarea.form-control {
     grid-row: auto;
   }
 
-  .filter-sidebar {
-    position: static;
-    width: 100%;
-  }
-
+  .filter-sidebar,
   .map-sidebar {
     position: static;
     width: 100%;
@@ -3015,10 +2771,6 @@ textarea.form-control {
     display: none;
   }
 
-  .nav-hamburger {
-    display: inline-flex;
-  }
-
   .hero {
     padding-top: 30px;
   }
@@ -3059,28 +2811,6 @@ textarea.form-control {
   .recommendation-price,
   .review-rating-main {
     grid-column: 2;
-  }
-
-  /* Filter sidebar becomes bottom sheet */
-  .filter-sidebar {
-    position: fixed;
-    inset: auto 0 0;
-    z-index: 1300;
-    width: 100%;
-    max-height: 85vh;
-    border-radius: 24px 24px 0 0;
-    overflow-y: auto;
-    transform: translateY(100%);
-    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow-lg);
-  }
-
-  .filter-sidebar.open {
-    transform: translateY(0);
-  }
-
-  .filter-sheet-overlay {
-    display: block;
   }
 
   .map-sidebar {
@@ -3184,51 +2914,38 @@ textarea.form-control {
    Keyframes
 ======================================== */
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 @keyframes scale-in {
-  0%   { opacity: 0; transform: scale(0.96); }
-  100% { opacity: 1; transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes toast-in {
-  0%   { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-
-@keyframes slide-down {
-  0%   { opacity: 0; transform: translateY(-8px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-/* ========================================
-   HTML Snippet Example — Room Card
-   ----------------------------------------
-   <div class="room-card reveal">
-     <div class="room-image">
-       <img src="..." alt="Tên phòng" loading="lazy">
-       <!-- Thêm class 'loaded' khi ảnh tải xong via JS -->
-       <span class="room-price-badge">4.5 triệu/th</span>
-       <span class="room-status-badge status-badge available">Còn trống</span>
-       <button class="room-fav" aria-label="Yêu thích">♡</button>
-       <span class="room-type-badge">Phòng trọ</span>
-     </div>
-     <div class="room-body">
-       <h3 class="room-title">Phòng trọ đầy đủ nội thất, gần ĐH Bách Khoa</h3>
-       <p class="room-location">📍 Hai Bà Trưng, Hà Nội</p>
-       <div class="room-meta">
-         <span>25 m²</span>
-         <span>·</span>
-         <span>Wifi miễn phí</span>
-         <span>·</span>
-         <span>Điều hoà</span>
-       </div>
-     </div>
-   </div>
-======================================== */
