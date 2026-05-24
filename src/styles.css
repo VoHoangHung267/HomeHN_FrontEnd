@@ -1084,11 +1084,14 @@ textarea.form-control {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
   gap: 24px;
+  align-items: start;
 }
 
 .detail-left {
   display: grid;
   gap: 24px;
+  grid-column: 1;
+  grid-row: 1;
 }
 
 .gallery {
@@ -1139,9 +1142,7 @@ textarea.form-control {
 }
 
 .gallery-thumbs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
-  gap: 12px;
+  display: none;
 }
 
 .thumb {
@@ -1312,6 +1313,10 @@ textarea.form-control {
   display: grid;
   gap: 20px;
   align-content: start;
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: calc(var(--nav-height) + 20px);
 }
 
 .landlord-info,
@@ -1371,6 +1376,7 @@ textarea.form-control {
   display: grid;
   gap: 18px;
   grid-column: 1;
+  grid-row: 2;
   align-content: start;
 }
 
@@ -2347,6 +2353,13 @@ textarea.form-control {
     grid-template-columns: 1fr;
   }
 
+  .detail-left,
+  .detail-right,
+  .reviews-section {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
   .filter-sidebar,
   .map-sidebar {
     position: static;
@@ -2355,6 +2368,7 @@ textarea.form-control {
 
   .detail-right {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    position: static;
   }
 
   .ai-search-panel {
