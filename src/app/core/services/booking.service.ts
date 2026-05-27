@@ -55,6 +55,19 @@ export class BookingService {
     return this.http.patch<ApiResponse<RentalBooking>>(`${this.API}/${id}/approve-renewal`, payload);
   }
 
+  updateContractDraft(id: number, payload: {
+    monthlyRent?: number;
+    depositAmount?: number;
+    electricPrice?: number;
+    waterPrice?: number;
+    otherFees?: number;
+    moveInRules: string;
+    serviceNotes: string;
+    additionalTerms?: string;
+  }): Observable<ApiResponse<RentalBooking>> {
+    return this.http.patch<ApiResponse<RentalBooking>>(`${this.API}/${id}/contract-draft`, payload);
+  }
+
   rejectRenewal(id: number, payload: { note?: string }): Observable<ApiResponse<RentalBooking>> {
     return this.http.patch<ApiResponse<RentalBooking>>(`${this.API}/${id}/reject-renewal`, payload);
   }

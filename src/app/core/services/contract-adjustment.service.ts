@@ -21,6 +21,9 @@ export class ContractAdjustmentService {
     proposedWaterPrice?: number;
     proposedOtherFees?: number;
     proposedContractTerms?: string;
+    proposedMoveInRules?: string;
+    proposedServiceNotes?: string;
+    proposedAdditionalTerms?: string;
     proposalNote?: string;
   }): Observable<ApiResponse<ContractAdjustment>> {
     return this.http.post<ApiResponse<ContractAdjustment>>(`${this.API}/${bookingId}/adjustments`, payload);

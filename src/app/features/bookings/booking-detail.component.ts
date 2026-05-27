@@ -5,9 +5,15 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { BookingService } from '../../core/services/booking.service';
 import { ContractAdjustmentService } from '../../core/services/contract-adjustment.service';
+import { ContractTemplateService } from '../../core/services/contract-template.service';
 import { RoomService } from '../../core/services/room.service';
 import { ToastService } from '../../core/services/toast.service';
-import { ContractAdjustment, RentalBooking, RentalBookingStatus } from '../../core/models';
+import {
+  ContractAdjustment,
+  ContractTemplate,
+  RentalBooking,
+  RentalBookingStatus
+} from '../../core/models';
 
 @Component({
   selector: 'app-booking-detail',
@@ -22,26 +28,45 @@ export class BookingDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly bookingService = inject(BookingService);
   private readonly contractAdjustmentService = inject(ContractAdjustmentService);
+  private readonly contractTemplateService = inject(ContractTemplateService);
   private readonly roomService = inject(RoomService);
   private readonly toast = inject(ToastService);
 
   booking = signal<RentalBooking | null>(null);
   adjustments = signal<ContractAdjustment[]>([]);
+  contractTemplates = signal<ContractTemplate[]>([]);
   loading = signal(false);
-  decisionNote = '';
   decisionSaving = signal(false);
   paymentOpening = signal(false);
+  adjustmentSaving = signal(false);
+  templateSaving = signal(false);
+
+  decisionNote = '';
   cashReceiptNote = '';
   renewalMonths = 6;
   renewalTerms = '';
-  adjustmentSaving = signal(false);
-  adjustmentMonthlyRent: number | null = null;
-  adjustmentDepositAmount: number | null = null;
-  adjustmentElectricPrice: number | null = null;
-  adjustmentWaterPrice: number | null = null;
-  adjustmentOtherFees: number | null = null;
-  adjustmentProposalNote = '';
   adjustmentResponseNote = '';
+
+  templateName = '';
+  selectedTemplateId: number | null = null;
+  draftMonthlyRent: number | null = null;
+  draftDepositAmount: number | null = null;
+  draftElectricPrice: number | null = null;
+  draftWaterPrice: number | null = null;
+  draftOtherFees: number | null = null;
+  draftMoveInRules = '';
+  draftServiceNotes = '';
+  draftAdditionalTerms = '';
+
+  requestedMonthlyRent: number | null = null;
+  requestedDepositAmount: number | null = null;
+  requestedElectricPrice: number | null = null;
+  requestedWaterPrice: number | null = null;
+  requestedOtherFees: number | null = null;
+  requestedMoveInRules = '';
+  requestedServiceNotes = '';
+  requestedAdditionalTerms = '';
+  adjustmentProposalNote = '';
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -57,14 +82,15 @@ export class BookingDetailComponent implements OnInit {
         this.booking.set(r.data);
         this.renewalMonths = 6;
         this.renewalTerms = r.data.contractTerms ?? '';
-        this.adjustmentMonthlyRent = r.data.monthlyRent ?? null;
-        this.adjustmentDepositAmount = r.data.depositAmount ?? null;
-        this.adjustmentElectricPrice = r.data.electricPrice ?? null;
-        this.adjustmentWaterPrice = r.data.waterPrice ?? null;
-        this.adjustmentOtherFees = r.data.otherFees ?? null;
-        this.adjustmentProposalNote = '';
+        this.setDraftFromBooking(r.data);
+        this.resetAdjustmentRequestForm(r.data);
         this.adjustmentResponseNote = '';
         this.loadAdjustments(r.data.id);
+        if (this.isLandlordView()) {
+          this.loadContractTemplates();
+        } else {
+          this.contractTemplates.set([]);
+        }
         this.loading.set(false);
       },
       error: e => {
@@ -74,10 +100,40 @@ export class BookingDetailComponent implements OnInit {
     });
   }
 
+  private setDraftFromBooking(booking: RentalBooking): void {
+    this.draftMonthlyRent = booking.monthlyRent ?? null;
+    this.draftDepositAmount = booking.depositAmount ?? null;
+    this.draftElectricPrice = booking.electricPrice ?? null;
+    this.draftWaterPrice = booking.waterPrice ?? null;
+    this.draftOtherFees = booking.otherFees ?? null;
+    this.draftMoveInRules = booking.contractMoveInRules ?? '';
+    this.draftServiceNotes = booking.contractServiceNotes ?? '';
+    this.draftAdditionalTerms = booking.contractAdditionalTerms ?? '';
+  }
+
+  private resetAdjustmentRequestForm(booking: RentalBooking): void {
+    this.requestedMonthlyRent = booking.monthlyRent ?? null;
+    this.requestedDepositAmount = booking.depositAmount ?? null;
+    this.requestedElectricPrice = booking.electricPrice ?? null;
+    this.requestedWaterPrice = booking.waterPrice ?? null;
+    this.requestedOtherFees = booking.otherFees ?? null;
+    this.requestedMoveInRules = booking.contractMoveInRules ?? '';
+    this.requestedServiceNotes = booking.contractServiceNotes ?? '';
+    this.requestedAdditionalTerms = booking.contractAdditionalTerms ?? '';
+    this.adjustmentProposalNote = '';
+  }
+
   loadAdjustments(bookingId: number): void {
     this.contractAdjustmentService.getByBooking(bookingId).subscribe({
       next: r => this.adjustments.set(r.data),
       error: () => this.adjustments.set([])
+    });
+  }
+
+  loadContractTemplates(): void {
+    this.contractTemplateService.getMine().subscribe({
+      next: r => this.contractTemplates.set(r.data),
+      error: () => this.contractTemplates.set([])
     });
   }
 
@@ -154,7 +210,7 @@ export class BookingDetailComponent implements OnInit {
         this.booking.set(r.data);
         this.decisionSaving.set(false);
         this.decisionNote = '';
-        this.toast.success(action === 'APPROVE' ? 'Đã chấp thuận yêu cầu thuê' : 'Đã từ chối yêu cầu thuê');
+        this.toast.success(action === 'APPROVE' ? 'Đã chuyển sang bước đặt cọc' : 'Đã từ chối yêu cầu thuê');
       },
       error: e => {
         this.toast.error(e.error?.message ?? 'Không thể cập nhật đơn thuê');
@@ -231,28 +287,62 @@ export class BookingDetailComponent implements OnInit {
     });
   }
 
+  updateContractDraft(): void {
+    const booking = this.booking();
+    if (!booking) return;
+    if (!this.draftMoveInRules.trim() || !this.draftServiceNotes.trim()) {
+      this.toast.error('Vui lòng nhập đủ giờ giấc và thông tin dịch vụ');
+      return;
+    }
+
+    this.adjustmentSaving.set(true);
+    this.bookingService.updateContractDraft(booking.id, {
+      monthlyRent: this.draftMonthlyRent ?? undefined,
+      depositAmount: this.draftDepositAmount ?? undefined,
+      electricPrice: this.draftElectricPrice ?? undefined,
+      waterPrice: this.draftWaterPrice ?? undefined,
+      otherFees: this.draftOtherFees ?? undefined,
+      moveInRules: this.draftMoveInRules.trim(),
+      serviceNotes: this.draftServiceNotes.trim(),
+      additionalTerms: this.draftAdditionalTerms.trim() || undefined
+    }).subscribe({
+      next: r => {
+        this.booking.set(r.data);
+        this.setDraftFromBooking(r.data);
+        this.resetAdjustmentRequestForm(r.data);
+        this.adjustmentSaving.set(false);
+        this.toast.success('Đã cập nhật điều khoản dự kiến để người thuê xem');
+      },
+      error: e => {
+        this.toast.error(e.error?.message ?? 'Không cập nhật được hợp đồng');
+        this.adjustmentSaving.set(false);
+      }
+    });
+  }
+
   createAdjustment(): void {
     const booking = this.booking();
     if (!booking) return;
 
     this.adjustmentSaving.set(true);
     this.contractAdjustmentService.create(booking.id, {
-      extensionMonths: this.renewalMonths || undefined,
-      proposedMonthlyRent: this.adjustmentMonthlyRent ?? undefined,
-      proposedDepositAmount: this.adjustmentDepositAmount ?? undefined,
-      proposedElectricPrice: this.adjustmentElectricPrice ?? undefined,
-      proposedWaterPrice: this.adjustmentWaterPrice ?? undefined,
-      proposedOtherFees: this.adjustmentOtherFees ?? undefined,
-      proposedContractTerms: this.renewalTerms.trim() || undefined,
+      proposedMonthlyRent: this.requestedMonthlyRent ?? undefined,
+      proposedDepositAmount: this.requestedDepositAmount ?? undefined,
+      proposedElectricPrice: this.requestedElectricPrice ?? undefined,
+      proposedWaterPrice: this.requestedWaterPrice ?? undefined,
+      proposedOtherFees: this.requestedOtherFees ?? undefined,
+      proposedMoveInRules: this.requestedMoveInRules.trim() || undefined,
+      proposedServiceNotes: this.requestedServiceNotes.trim() || undefined,
+      proposedAdditionalTerms: this.requestedAdditionalTerms.trim() || undefined,
       proposalNote: this.adjustmentProposalNote.trim() || undefined
     }).subscribe({
       next: () => {
         this.adjustmentSaving.set(false);
-        this.toast.success('Đã gửi đề xuất điều chỉnh hợp đồng');
+        this.toast.success('Đã gửi yêu cầu chỉnh sửa điều khoản');
         this.load(booking.id);
       },
       error: e => {
-        this.toast.error(e.error?.message ?? 'Không gửi được đề xuất điều chỉnh hợp đồng');
+        this.toast.error(e.error?.message ?? 'Không gửi được yêu cầu chỉnh sửa điều khoản');
         this.adjustmentSaving.set(false);
       }
     });
@@ -270,14 +360,78 @@ export class BookingDetailComponent implements OnInit {
       next: () => {
         this.adjustmentSaving.set(false);
         this.adjustmentResponseNote = '';
-        this.toast.success(status === 'APPROVED' ? 'Đã chấp thuận điều chỉnh hợp đồng' : 'Đã từ chối điều chỉnh hợp đồng');
+        this.toast.success(status === 'APPROVED' ? 'Đã duyệt yêu cầu chỉnh sửa' : 'Đã từ chối yêu cầu chỉnh sửa');
         this.load(booking.id);
       },
       error: e => {
-        this.toast.error(e.error?.message ?? 'Không thể phản hồi đề xuất điều chỉnh');
+        this.toast.error(e.error?.message ?? 'Không thể phản hồi yêu cầu chỉnh sửa');
         this.adjustmentSaving.set(false);
       }
     });
+  }
+
+  saveTemplate(overwrite = false): void {
+    if (!this.templateName.trim()) {
+      this.toast.error('Vui lòng nhập tên mẫu hợp đồng');
+      return;
+    }
+    if (!this.draftMoveInRules.trim() || !this.draftServiceNotes.trim()) {
+      this.toast.error('Vui lòng nhập đủ giờ giấc và thông tin dịch vụ');
+      return;
+    }
+
+    const payload = {
+      name: this.templateName.trim(),
+      defaultMonthlyRent: this.draftMonthlyRent ?? undefined,
+      defaultDepositAmount: this.draftDepositAmount ?? undefined,
+      defaultElectricPrice: this.draftElectricPrice ?? undefined,
+      defaultWaterPrice: this.draftWaterPrice ?? undefined,
+      defaultOtherFees: this.draftOtherFees ?? undefined,
+      moveInRules: this.draftMoveInRules.trim(),
+      serviceNotes: this.draftServiceNotes.trim(),
+      additionalTerms: this.draftAdditionalTerms.trim() || undefined
+    };
+
+    this.templateSaving.set(true);
+    const request = overwrite && this.selectedTemplateId
+      ? this.contractTemplateService.update(this.selectedTemplateId, payload)
+      : this.contractTemplateService.create(payload);
+
+    request.subscribe({
+      next: r => {
+        const updatedExisting = overwrite && !!this.selectedTemplateId;
+        this.templateSaving.set(false);
+        this.selectedTemplateId = r.data.id;
+        this.applyTemplate(r.data.id);
+        this.loadContractTemplates();
+        this.toast.success(updatedExisting ? 'Đã cập nhật mẫu hợp đồng' : 'Đã lưu mẫu hợp đồng');
+      },
+      error: e => {
+        this.toast.error(e.error?.message ?? 'Không lưu được mẫu hợp đồng');
+        this.templateSaving.set(false);
+      }
+    });
+  }
+
+  applyTemplate(templateId: number | null): void {
+    if (!templateId) {
+      this.selectedTemplateId = null;
+      return;
+    }
+
+    const template = this.contractTemplates().find(item => item.id === templateId);
+    if (!template) return;
+
+    this.selectedTemplateId = template.id;
+    this.templateName = template.name;
+    this.draftMonthlyRent = template.defaultMonthlyRent ?? null;
+    this.draftDepositAmount = template.defaultDepositAmount ?? null;
+    this.draftElectricPrice = template.defaultElectricPrice ?? null;
+    this.draftWaterPrice = template.defaultWaterPrice ?? null;
+    this.draftOtherFees = template.defaultOtherFees ?? null;
+    this.draftMoveInRules = template.moveInRules ?? '';
+    this.draftServiceNotes = template.serviceNotes ?? '';
+    this.draftAdditionalTerms = template.additionalTerms ?? '';
   }
 
   openForNextViewers(): void {
@@ -309,11 +463,19 @@ export class BookingDetailComponent implements OnInit {
     return !!booking && (this.auth.isAdmin() || this.auth.user()?.id === booking.landlordId);
   }
 
-  canCreateAdjustment(): boolean {
+  canManageContractTemplates(): boolean {
     const booking = this.booking();
-    if (!booking) return false;
-    const inStage = booking.status === 'EXPIRING_SOON' || booking.status === 'RENEWAL_PENDING';
-    return inStage && !this.pendingAdjustment();
+    return !!booking && this.isLandlordView() && booking.status === 'REQUESTED';
+  }
+
+  canEditContractDraft(): boolean {
+    const booking = this.booking();
+    return !!booking && this.isLandlordView() && booking.status === 'REQUESTED';
+  }
+
+  canTenantRequestAdjustment(): boolean {
+    const booking = this.booking();
+    return !!booking && !this.isLandlordView() && booking.status === 'REQUESTED' && !this.pendingAdjustment();
   }
 
   pendingAdjustment(): ContractAdjustment | null {
@@ -333,7 +495,7 @@ export class BookingDetailComponent implements OnInit {
     }
 
     const map: Record<RentalBookingStatus, string> = {
-      REQUESTED: 'Chờ chủ trọ xem xét',
+      REQUESTED: 'Đang xem và chốt hợp đồng',
       PENDING_PAYMENT: 'Chờ đặt cọc',
       DEPOSIT_PAID: 'Đã đặt cọc',
       ACTIVE: 'Hợp đồng đang hiệu lực',

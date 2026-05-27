@@ -217,11 +217,30 @@ export interface ContractAdjustment {
   proposedWaterPrice?: number;
   proposedOtherFees?: number;
   proposedContractTerms?: string;
+  proposedMoveInRules?: string;
+  proposedServiceNotes?: string;
+  proposedAdditionalTerms?: string;
   proposalNote?: string;
   status: ContractAdjustmentStatus;
   responderRole?: ContractAdjustmentProposerRole;
   responseNote?: string;
   respondedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContractTemplate {
+  id: number;
+  name: string;
+  content: string;
+  defaultMonthlyRent?: number;
+  defaultDepositAmount?: number;
+  defaultElectricPrice?: number;
+  defaultWaterPrice?: number;
+  defaultOtherFees?: number;
+  moveInRules: string;
+  serviceNotes: string;
+  additionalTerms?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -251,6 +270,9 @@ export interface RentalBooking {
   otherFees?: number;
   contractCode: string;
   contractTerms: string;
+  contractMoveInRules?: string;
+  contractServiceNotes?: string;
+  contractAdditionalTerms?: string;
   note?: string;
   landlordNote?: string;
   status: RentalBookingStatus;
