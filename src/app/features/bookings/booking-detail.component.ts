@@ -46,6 +46,7 @@ export class BookingDetailComponent implements OnInit {
   renewalMonths = 6;
   renewalTerms = '';
   adjustmentResponseNote = '';
+  earlyTerminationReason = '';
 
   templateName = '';
   selectedTemplateId: number | null = null;
@@ -287,6 +288,71 @@ export class BookingDetailComponent implements OnInit {
     });
   }
 
+  requestEarlyTermination(): void {
+    const booking = this.booking();
+    if (!booking) return;
+    if (!this.earlyTerminationReason.trim()) {
+      this.toast.error('Vui lòng nhập lý do kết thúc hợp đồng sớm');
+      return;
+    }
+
+    this.decisionSaving.set(true);
+    this.bookingService.terminateContractEarly(booking.roomId, {
+      note: this.earlyTerminationReason.trim()
+    }).subscribe({
+      next: r => {
+        this.booking.set(r.data);
+        this.decisionSaving.set(false);
+        this.earlyTerminationReason = '';
+        this.toast.success('Đã gửi yêu cầu kết thúc hợp đồng sớm');
+      },
+      error: e => {
+        this.toast.error(e.error?.message ?? 'Không thể gửi yêu cầu kết thúc hợp đồng sớm');
+        this.decisionSaving.set(false);
+      }
+    });
+  }
+
+  approveEarlyTermination(): void {
+    const booking = this.booking();
+    if (!booking) return;
+    this.decisionSaving.set(true);
+    this.bookingService.approveEarlyTermination(booking.id, {
+      note: this.decisionNote.trim() || undefined
+    }).subscribe({
+      next: r => {
+        this.booking.set(r.data);
+        this.decisionSaving.set(false);
+        this.decisionNote = '';
+        this.toast.success('Đã duyệt kết thúc hợp đồng sớm');
+      },
+      error: e => {
+        this.toast.error(e.error?.message ?? 'Không thể duyệt kết thúc hợp đồng sớm');
+        this.decisionSaving.set(false);
+      }
+    });
+  }
+
+  rejectEarlyTermination(): void {
+    const booking = this.booking();
+    if (!booking) return;
+    this.decisionSaving.set(true);
+    this.bookingService.rejectEarlyTermination(booking.id, {
+      note: this.decisionNote.trim() || undefined
+    }).subscribe({
+      next: r => {
+        this.booking.set(r.data);
+        this.decisionSaving.set(false);
+        this.decisionNote = '';
+        this.toast.success('Đã từ chối kết thúc hợp đồng sớm');
+      },
+      error: e => {
+        this.toast.error(e.error?.message ?? 'Không thể từ chối kết thúc hợp đồng sớm');
+        this.decisionSaving.set(false);
+      }
+    });
+  }
+
   updateContractDraft(): void {
     const booking = this.booking();
     if (!booking) return;
@@ -460,7 +526,11 @@ export class BookingDetailComponent implements OnInit {
 
   isLandlordView(): boolean {
     const booking = this.booking();
-    return !!booking && (this.auth.isAdmin() || this.auth.user()?.id === booking.landlordId);
+    return !!booking && this.auth.user()?.id === booking.landlordId;
+  }
+
+  isAdminView(): boolean {
+    return this.auth.isAdmin();
   }
 
   canManageContractTemplates(): boolean {
@@ -501,12 +571,19 @@ export class BookingDetailComponent implements OnInit {
       ACTIVE: 'Hợp đồng đang hiệu lực',
       EXPIRING_SOON: 'Sắp hết hạn hợp đồng',
       RENEWAL_PENDING: 'Đang chờ chốt gia hạn',
+      EARLY_TERMINATION_PENDING: 'Chờ admin duyệt kết thúc sớm',
       REJECTED: 'Đã bị từ chối',
       CANCELLED: 'Đã huỷ',
       PAYMENT_FAILED: 'Thanh toán lỗi',
-      COMPLETED: 'Đã kết thúc hợp đồng'
+      COMPLETED: booking && this.isEarlyTerminated(booking) ? 'Đã kết thúc sớm' : 'Đã kết thúc hợp đồng'
     };
     return map[status];
+  }
+
+  private isEarlyTerminated(booking: RentalBooking): boolean {
+    const message = booking.paymentMessage?.toLowerCase() ?? '';
+    const note = booking.landlordNote?.toLowerCase() ?? '';
+    return message.includes('kết thúc hợp đồng sớm') || note.includes('kết thúc hợp đồng trước hạn');
   }
 
   paymentLabel(status: RentalBooking['paymentStatus']): string {

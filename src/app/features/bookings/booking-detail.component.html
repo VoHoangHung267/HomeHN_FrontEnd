@@ -56,6 +56,13 @@
               <div>{{ b.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
             </div>
           </div>
+
+          @if (b.status === 'EARLY_TERMINATION_PENDING' || (b.status === 'COMPLETED' && b.landlordNote)) {
+            <div class="note-box" style="margin-top:16px">
+              <strong>Lý do kết thúc hợp đồng sớm</strong>
+              <div>{{ b.landlordNote || 'Chưa có lý do' }}</div>
+            </div>
+          }
         </div>
 
         <div class="card section-card">
@@ -290,12 +297,12 @@
           <img [src]="b.roomPrimaryImage || 'assets/room-placeholder.jpg'" [alt]="b.roomTitle" class="side-image" />
           <div class="side-title">{{ b.roomTitle }}</div>
 
-          @if (!isLandlordView() && b.status === 'REQUESTED') {
+          @if (auth.isSeeker() && b.status === 'REQUESTED') {
             <div class="hint-box">Bạn đang ở bước xem điều khoản dự kiến. Nếu muốn sửa giá, giờ giấc hoặc dịch vụ, hãy gửi yêu cầu chỉnh sửa trước khi sang bước đặt cọc.</div>
             <button class="btn btn-outline btn-block" (click)="cancelBooking()">Huỷ yêu cầu thuê</button>
           }
 
-          @if (!isLandlordView() && (b.status === 'PENDING_PAYMENT' || b.status === 'PAYMENT_FAILED')) {
+          @if (auth.isSeeker() && (b.status === 'PENDING_PAYMENT' || b.status === 'PAYMENT_FAILED')) {
             <div class="hint-box">Hai bên đã chốt xong điều khoản. Bạn hãy thực hiện đặt cọc theo phương thức đã chọn.</div>
             @if ((b.paymentMethod || b.paymentProvider) === 'VNPAY') {
               <button class="btn btn-primary btn-block" (click)="openPayment()" [disabled]="paymentOpening()">
@@ -324,7 +331,7 @@
             }
           }
 
-          @if (!isLandlordView() && b.status === 'EXPIRING_SOON') {
+          @if (auth.isSeeker() && b.status === 'EXPIRING_SOON') {
             <input type="number" class="form-control" min="1" [(ngModel)]="renewalMonths" placeholder="Số tháng muốn gia hạn" />
             <textarea class="form-control" rows="3" [(ngModel)]="decisionNote" placeholder="Đề xuất gia hạn hoặc ghi chú thêm"></textarea>
             <button class="btn btn-primary btn-block" (click)="requestRenewal()" [disabled]="decisionSaving()">Yêu cầu gia hạn</button>
@@ -350,6 +357,29 @@
               <button class="btn btn-primary btn-block" (click)="approveRenewal()" [disabled]="decisionSaving()">Chấp thuận gia hạn</button>
               <button class="btn btn-danger btn-block" (click)="rejectRenewal()" [disabled]="decisionSaving()">Không gia hạn</button>
             </div>
+          }
+
+          @if (isLandlordView() && b.status === 'ACTIVE') {
+            <textarea class="form-control" rows="3" [(ngModel)]="earlyTerminationReason" placeholder="Lý do yêu cầu kết thúc hợp đồng sớm"></textarea>
+            <button class="btn btn-danger btn-block" style="margin-top:12px" (click)="requestEarlyTermination()" [disabled]="decisionSaving()">
+              Gửi yêu cầu kết thúc hợp đồng sớm
+            </button>
+          }
+
+          @if (isAdminView() && b.status === 'EARLY_TERMINATION_PENDING') {
+            <div class="note-box">
+              <strong>Yêu cầu kết thúc hợp đồng sớm đang chờ admin duyệt</strong>
+              <div>Lý do từ chủ trọ: {{ b.landlordNote || 'Chưa có lý do' }}</div>
+            </div>
+            <textarea class="form-control" rows="3" [(ngModel)]="decisionNote" placeholder="Ghi chú duyệt hoặc từ chối"></textarea>
+            <div class="action-group" style="margin-top:12px">
+              <button class="btn btn-primary btn-block" (click)="approveEarlyTermination()" [disabled]="decisionSaving()">Duyệt kết thúc sớm</button>
+              <button class="btn btn-danger btn-block" (click)="rejectEarlyTermination()" [disabled]="decisionSaving()">Từ chối yêu cầu</button>
+            </div>
+          }
+
+          @if (auth.isSeeker() && b.status === 'EARLY_TERMINATION_PENDING') {
+            <div class="hint-box">Chủ trọ đã gửi yêu cầu kết thúc hợp đồng sớm. Admin đang xem xét. Lý do: {{ b.landlordNote || 'Chưa có lý do' }}</div>
           }
 
           @if (b.paymentMessage) {

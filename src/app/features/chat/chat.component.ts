@@ -378,6 +378,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       ACTIVE: 'Hợp đồng đang hiệu lực',
       EXPIRING_SOON: 'Sắp hết hạn hợp đồng',
       RENEWAL_PENDING: 'Đang chờ chốt gia hạn',
+      EARLY_TERMINATION_PENDING: 'Chờ admin duyệt kết thúc sớm',
       REJECTED: 'Đã bị từ chối',
       CANCELLED: 'Đã huỷ',
       PAYMENT_FAILED: 'Thanh toán lỗi',

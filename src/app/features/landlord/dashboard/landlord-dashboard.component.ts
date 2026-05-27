@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, OnInit, signal, computed, inject } 
 import { RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { BookingService } from '../../../core/services/booking.service';
 import { RoomService } from '../../../core/services/room.service';
 import { ViewingAppointmentService } from '../../../core/services/viewing-appointment.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -17,6 +18,7 @@ import { Room, STATUS_LABELS, RoomStatus, ViewingAppointment, ViewingAppointment
 })
 export class LandlordDashboardComponent implements OnInit {
   readonly auth = inject(AuthService);
+  private readonly bookingService = inject(BookingService);
   private readonly roomService = inject(RoomService);
   private readonly appointmentService = inject(ViewingAppointmentService);
   private readonly toast = inject(ToastService);
@@ -69,6 +71,25 @@ export class LandlordDashboardComponent implements OnInit {
   reactivateRoom(room: Room): void {
     this.toast.confirm(`Hiện lại phòng "${room.title}"?`, () => {
       this.updateRoomStatus(room, 'ACTIVE');
+    });
+  }
+
+  terminateContractEarly(room: Room): void {
+    const reason = prompt(`Lý do yêu cầu kết thúc hợp đồng sớm cho phòng "${room.title}"?`)?.trim() ?? '';
+    if (!reason) {
+      this.toast.error('Vui lòng nhập lý do kết thúc hợp đồng sớm');
+      return;
+    }
+
+    this.toast.confirm(`Gửi yêu cầu kết thúc hợp đồng sớm cho phòng "${room.title}"?`, () => {
+      this.bookingService.terminateContractEarly(room.id, { note: reason }).subscribe({
+        next: () => {
+          this.toast.success('Đã gửi yêu cầu kết thúc hợp đồng sớm. Chờ admin duyệt.');
+        },
+        error: e => {
+          this.toast.error(e.error?.message ?? 'Không thể gửi yêu cầu kết thúc hợp đồng sớm');
+        }
+      });
     });
   }
 
@@ -180,7 +201,11 @@ export class LandlordDashboardComponent implements OnInit {
   }
 
   canReactivate(room: Room): boolean {
-    return room.status === 'HIDDEN' || room.status === 'RENTED' || room.status === 'HIDDEN_REVIEW' || room.status === 'AVAILABLE_SOON';
+    return room.status === 'HIDDEN' || room.status === 'HIDDEN_REVIEW' || room.status === 'AVAILABLE_SOON';
+  }
+
+  canTerminateEarly(room: Room): boolean {
+    return room.status === 'RENTED';
   }
 
   canMarkRented(room: Room): boolean {
@@ -188,8 +213,14 @@ export class LandlordDashboardComponent implements OnInit {
   }
 
   private updateRoomStatus(room: Room, status: RoomStatus): void {
-    this.roomService.updateRoomStatus(room.id, status).subscribe(r => {
-      this.rooms.update(list => list.map(item => item.id === room.id ? r.data : item));
+    this.roomService.updateRoomStatus(room.id, status).subscribe({
+      next: r => {
+        this.rooms.update(list => list.map(item => item.id === room.id ? r.data : item));
+        this.toast.success('Đã cập nhật trạng thái phòng');
+      },
+      error: e => {
+        this.toast.error(e.error?.message ?? 'Không thể cập nhật trạng thái phòng');
+      }
     });
   }
 

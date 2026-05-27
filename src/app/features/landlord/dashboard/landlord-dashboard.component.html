@@ -144,6 +144,9 @@
                     @if (canReactivate(room)) {
                       <button class="btn btn-primary btn-sm" (click)="reactivateRoom(room)">Hiện lại</button>
                     }
+                    @if (canTerminateEarly(room)) {
+                      <button class="btn btn-outline btn-sm" (click)="terminateContractEarly(room)">Kết thúc hợp đồng sớm</button>
+                    }
                     @if (canMarkRented(room)) {
                       <button class="btn btn-outline btn-sm" (click)="markRented(room)">Đã cho thuê</button>
                     }

@@ -181,6 +181,18 @@ export class AppComponent implements OnInit {
 
     if (item.actionUrl) {
       this.router.navigateByUrl(item.actionUrl);
+    } else if (
+      item.type === 'BOOKING_CREATED'
+      || item.type === 'BOOKING_UPDATED'
+      || item.type === 'BOOKING_DEPOSIT_PAID'
+      || item.type === 'CONTRACT_ADJUSTMENT_CREATED'
+      || item.type === 'CONTRACT_ADJUSTMENT_APPROVED'
+      || item.type === 'CONTRACT_ADJUSTMENT_REJECTED'
+      || item.type === 'CONTRACT_RENEWAL_REQUESTED'
+      || item.type === 'CONTRACT_RENEWED'
+      || item.type === 'CONTRACT_RENEWAL_REJECTED'
+    ) {
+      this.router.navigate(['/bookings', item.relatedId]);
     } else if (item.type === 'REVIEW_RECEIVED' && item.relatedId) {
       this.router.navigate(['/rooms', item.relatedId]);
     } else if (item.type === 'ADMIN_REPORT_RECEIVED') {
@@ -221,7 +233,13 @@ export class AppComponent implements OnInit {
       APPOINTMENT_CANCELLED: '📅',
       BOOKING_CREATED: '🧾',
       BOOKING_UPDATED: '📄',
-      BOOKING_DEPOSIT_PAID: '💳'
+      BOOKING_DEPOSIT_PAID: '💳',
+      CONTRACT_ADJUSTMENT_CREATED: '📝',
+      CONTRACT_ADJUSTMENT_APPROVED: '✅',
+      CONTRACT_ADJUSTMENT_REJECTED: '↩️',
+      CONTRACT_RENEWAL_REQUESTED: '🔁',
+      CONTRACT_RENEWED: '✅',
+      CONTRACT_RENEWAL_REJECTED: '❌'
     };
     return icons[type] ?? '🔔';
   }

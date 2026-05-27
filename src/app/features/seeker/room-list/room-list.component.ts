@@ -12,6 +12,7 @@ import {
   Room,
   RoomFilter,
   ROOM_TYPE_LABELS,
+  STATUS_LABELS,
   RoomType
 } from '../../../core/models';
 
@@ -166,6 +167,10 @@ export class RoomListComponent implements OnInit {
 
   genderLabel(g: GenderRequirement): string {
     return GENDER_LABELS[g] ?? g;
+  }
+
+  statusLabel(status: Room['status']): string {
+    return STATUS_LABELS[status] ?? status;
   }
 
   onMinPriceChange(value: number): void {

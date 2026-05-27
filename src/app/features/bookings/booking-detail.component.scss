@@ -89,7 +89,10 @@
   border-color: #bfdbfe;
 }
 
-.contract-box p { line-height: 1.6; }
+.contract-box p {
+  line-height: 1.6;
+  white-space: pre-line;
+}
 
 .action-card {
   position: sticky;

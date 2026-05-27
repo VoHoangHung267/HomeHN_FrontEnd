@@ -1,4 +1,4 @@
-﻿@if (room(); as r) {
+@if (room(); as r) {
 <div class="detail-page">
   <div class="container page">
 
@@ -167,7 +167,6 @@
         @if (auth.isSeeker()) {
         <div class="review-form-section">
           @if (!myReview()) {
-          <!-- Ch?a c? review ? t?o m?i -->
           <div class="review-form-card">
             <h4>{{ showReviewForm() ? 'Viết đánh giá của bạn' : '' }}</h4>
             @if (!showReviewForm()) {
@@ -249,7 +248,6 @@
             }
           </div>
           } @else {
-          <!-- Có review hiện có, cho sửa -->
           <div class="my-review-card">
             <div class="my-review-header">
               <span class="my-review-label">Đánh giá của bạn</span>
@@ -275,7 +273,6 @@
             </div>
             }
             } @else {
-            <!-- Inline edit form -->
             <div class="criteria-row main-rating">
               <span class="criteria-label">Đánh giá chung *</span>
               <div class="star-input">
@@ -288,7 +285,6 @@
               </div>
             </div>
 
-            <!-- 4 tiêu chí phụ -->
             <div class="sub-criteria">
               @for (c of subCriteria; track c.key) {
               <div class="criteria-row">
@@ -306,7 +302,6 @@
               }
             </div>
 
-            <!-- Comment -->
             <textarea class="form-control review-textarea" [(ngModel)]="reviewComment" [maxlength]="200" rows="3"
               placeholder="Chia sẻ trải nghiệm của bạn (tối đa 200 ký tự)...">
 </textarea>
@@ -371,7 +366,6 @@
         </div>
         }
 
-        <!-- Danh sách reviews -->
         @if (reviews().length > 0) {
         <div class="review-list">
           @for (review of reviews(); track review.id) {
@@ -389,7 +383,6 @@
               </div>
             </div>
 
-            <!-- Tiêu chí phụ nếu có -->
             @if (review.ratingLocation || review.ratingPrice || review.ratingLandlord || review.ratingHygiene) {
             <div class="sub-ratings-display">
               @for (c of subCriteria; track c.key) {
@@ -426,7 +419,6 @@
         }
       </div>
 
-      <!-- RIGHT: Landlord + Contact -->
       <div class="detail-right">
         <div class="landlord-card">
           <h3>Thông tin chủ nhà</h3>
@@ -528,6 +520,9 @@
         <input class="form-control"
                [value]="bookingFullName()"
                (input)="bookingFullName.set($any($event.target).value)" />
+        @if (bookingFieldErrors()['tenantFullName']) {
+          <div class="report-error">{{ bookingFieldErrors()['tenantFullName'] }}</div>
+        }
       </div>
 
       <div class="form-group" style="margin-top:12px">
@@ -535,6 +530,9 @@
         <input class="form-control"
                [value]="bookingPhone()"
                (input)="bookingPhone.set($any($event.target).value)" />
+        @if (bookingFieldErrors()['tenantPhone']) {
+          <div class="report-error">{{ bookingFieldErrors()['tenantPhone'] }}</div>
+        }
       </div>
 
       <div class="form-group" style="margin-top:12px">
@@ -542,6 +540,9 @@
         <input class="form-control"
                [value]="bookingEmail()"
                (input)="bookingEmail.set($any($event.target).value)" />
+        @if (bookingFieldErrors()['tenantEmail']) {
+          <div class="report-error">{{ bookingFieldErrors()['tenantEmail'] }}</div>
+        }
       </div>
 
       <div class="form-group" style="margin-top:12px">
@@ -549,6 +550,9 @@
         <input class="form-control"
                [value]="bookingIdentityNumber()"
                (input)="bookingIdentityNumber.set($any($event.target).value)" />
+        @if (bookingFieldErrors()['tenantIdentityNumber']) {
+          <div class="report-error">{{ bookingFieldErrors()['tenantIdentityNumber'] }}</div>
+        }
       </div>
 
       <div class="form-group" style="margin-top:12px">
@@ -557,6 +561,9 @@
                type="date"
                [value]="bookingMoveInDate()"
                (input)="bookingMoveInDate.set($any($event.target).value)" />
+        @if (bookingFieldErrors()['moveInDate']) {
+          <div class="report-error">{{ bookingFieldErrors()['moveInDate'] }}</div>
+        }
         @if (room()?.status === 'AVAILABLE_SOON' && room()?.availableFrom) {
           <div class="modal-sub" style="margin-top:6px">Phòng này dự kiến trống từ {{ room()?.availableFrom | date:'dd/MM/yyyy' }}.</div>
         }
@@ -570,6 +577,9 @@
                max="36"
                [value]="bookingLeaseMonths()"
                (input)="bookingLeaseMonths.set(+$any($event.target).value || 1)" />
+        @if (bookingFieldErrors()['leaseMonths']) {
+          <div class="report-error">{{ bookingFieldErrors()['leaseMonths'] }}</div>
+        }
       </div>
 
       <div class="form-group" style="margin-top:12px">
@@ -579,6 +589,9 @@
                min="1"
                [value]="bookingOccupantCount()"
                (input)="bookingOccupantCount.set(+$any($event.target).value || 1)" />
+        @if (bookingFieldErrors()['occupantCount']) {
+          <div class="report-error">{{ bookingFieldErrors()['occupantCount'] }}</div>
+        }
       </div>
 
       <div class="form-group" style="margin-top:12px">
@@ -589,6 +602,9 @@
           <option value="VNPAY">VNPAY</option>
           <option value="CASH">Tiền mặt / chuyển khoản trực tiếp</option>
         </select>
+        @if (bookingFieldErrors()['paymentMethod']) {
+          <div class="report-error">{{ bookingFieldErrors()['paymentMethod'] }}</div>
+        }
       </div>
 
       <div class="form-group" style="margin-top:12px">
@@ -597,7 +613,7 @@
                   rows="3"
                   [value]="bookingNote()"
                   (input)="bookingNote.set($any($event.target).value)"
-                  placeholder="Ví dụ: tôi muđn vào ở đầu tháng sau, cần hợp đồng 6 tháng..."></textarea>
+                  placeholder="Ví dụ: tôi muốn vào ở đầu tháng sau, cần hợp đồng 6 tháng..."></textarea>
       </div>
 
       @if (bookingError()) {
@@ -622,7 +638,7 @@
       </div>
 
       @if (!appointmentDone()) {
-      <p class="modal-sub">Chọn thời gian bạn muđn đến xem phòng và gửi lời nhắn cho chủ nhà.</p>
+      <p class="modal-sub">Chọn thời gian bạn muốn đến xem phòng và gửi lời nhắn cho chủ nhà.</p>
       <div class="form-group">
         <label class="form-label">Thời gian xem phòng *</label>
         <input class="form-control" type="datetime-local"
@@ -635,7 +651,7 @@
         <textarea class="form-control" rows="3"
                   [value]="appointmentMessage()"
                   (input)="appointmentMessage.set($any($event.target).value)"
-                  placeholder="Ví dụ: Tôi muđn xem phòng vào buổi chiều, đi 2 người..."></textarea>
+                  placeholder="Ví dụ: Tôi muốn xem phòng vào buổi chiều, đi 2 người..."></textarea>
       </div>
       @if (appointmentError()) {
       <div class="report-error">{{ appointmentError() }}</div>

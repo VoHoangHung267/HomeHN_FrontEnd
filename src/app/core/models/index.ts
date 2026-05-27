@@ -199,7 +199,7 @@ export interface ViewingAppointment {
 }
 
 export type RentalBookingStatus =
-  'REQUESTED' | 'PENDING_PAYMENT' | 'DEPOSIT_PAID' | 'ACTIVE' | 'EXPIRING_SOON' | 'RENEWAL_PENDING' | 'REJECTED' | 'CANCELLED' | 'PAYMENT_FAILED' | 'COMPLETED';
+  'REQUESTED' | 'PENDING_PAYMENT' | 'DEPOSIT_PAID' | 'ACTIVE' | 'EXPIRING_SOON' | 'RENEWAL_PENDING' | 'EARLY_TERMINATION_PENDING' | 'REJECTED' | 'CANCELLED' | 'PAYMENT_FAILED' | 'COMPLETED';
 
 export type RentalPaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'CANCELLED';
 export type RentalPaymentMethod = 'VNPAY' | 'CASH';

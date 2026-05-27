@@ -80,6 +80,7 @@ export class RoomDetailComponent implements OnInit {
   bookingNote = signal('');
   bookingSending = signal(false);
   bookingError = signal('');
+  bookingFieldErrors = signal<Record<string, string>>({});
 
   readonly reportReasons = [
     'Thông tin sai lệch',
@@ -202,24 +203,41 @@ export class RoomDetailComponent implements OnInit {
     this.bookingPaymentMethod.set('VNPAY');
     this.bookingNote.set('');
     this.bookingError.set('');
+    this.bookingFieldErrors.set({});
   }
 
   submitBooking(): void {
     const r = this.room();
     if (!r) return;
-    if (!this.bookingFullName().trim() || !this.bookingPhone().trim()) {
-      this.bookingError.set('Vui lòng nhập họ tên và số điện thoại');
-      return;
+    const fieldErrors: Record<string, string> = {};
+
+    if (!this.bookingFullName().trim()) {
+      fieldErrors['tenantFullName'] = 'Vui lòng nhập họ tên người thuê';
+    }
+    if (!this.bookingPhone().trim()) {
+      fieldErrors['tenantPhone'] = 'Vui lòng nhập số điện thoại';
     }
     if (!this.bookingMoveInDate()) {
-      this.bookingError.set('Vui lòng chọn ngày dự kiến vào ở');
-      return;
+      fieldErrors['moveInDate'] = 'Vui lòng chọn ngày dự kiến vào ở';
+    }
+    if (this.bookingLeaseMonths() < 1 || this.bookingLeaseMonths() > 36) {
+      fieldErrors['leaseMonths'] = 'Thời hạn thuê phải từ 1 đến 36 tháng';
+    }
+    if (this.bookingOccupantCount() < 1) {
+      fieldErrors['occupantCount'] = 'Số người ở tối thiểu là 1';
     }
     if (this.bookingOccupantCount() > r.maxPeople) {
-      this.bookingError.set(`Số người ở không được vượt quá ${r.maxPeople}`);
+      fieldErrors['occupantCount'] = `Số người ở không được vượt quá ${r.maxPeople}`;
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+      this.bookingFieldErrors.set(fieldErrors);
+      this.bookingError.set('');
       return;
     }
 
+    this.bookingFieldErrors.set({});
+    this.bookingError.set('');
     this.bookingSending.set(true);
     this.bookingService.create(r.id, {
       tenantFullName: this.bookingFullName().trim(),
@@ -235,11 +253,18 @@ export class RoomDetailComponent implements OnInit {
       next: res => {
         this.bookingSending.set(false);
         this.showBookingModal.set(false);
+        this.bookingFieldErrors.set({});
         this.toast.success('Đã tạo yêu cầu thuê phòng');
         this.router.navigate(['/bookings', res.data.id]);
       },
       error: e => {
-        this.bookingError.set(e.error?.message ?? 'Không tạo được yêu cầu thuê phòng');
+        const backendFieldErrors = this.extractFieldErrors(e);
+        this.bookingFieldErrors.set(backendFieldErrors);
+        this.bookingError.set(
+          Object.keys(backendFieldErrors).length > 0
+            ? ''
+            : (e.error?.message ?? 'Không tạo được yêu cầu thuê phòng')
+        );
         this.bookingSending.set(false);
       }
     });
@@ -308,6 +333,21 @@ export class RoomDetailComponent implements OnInit {
     return error?.error?.data?.requestedAt
       ?? error?.error?.message
       ?? 'Gửi yêu cầu thất bại';
+  }
+
+  private extractFieldErrors(error: any): Record<string, string> {
+    const data = error?.error?.data;
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return {};
+    }
+
+    const result: Record<string, string> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (typeof value === 'string' && value.trim()) {
+        result[key] = value;
+      }
+    }
+    return result;
   }
 
   goToRoom(id: number): void {

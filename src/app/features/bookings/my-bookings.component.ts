@@ -44,7 +44,11 @@ export class MyBookingsComponent implements OnInit {
     });
   }
 
-  statusLabel(status: RentalBookingStatus): string {
+  statusLabel(booking: RentalBooking): string {
+    if (booking.status === 'COMPLETED' && this.isEarlyTerminated(booking)) {
+      return 'Đã kết thúc sớm';
+    }
+
     const map: Record<RentalBookingStatus, string> = {
       REQUESTED: 'Chờ chủ trọ xác nhận',
       PENDING_PAYMENT: 'Chờ thanh toán cọc',
@@ -52,12 +56,19 @@ export class MyBookingsComponent implements OnInit {
       ACTIVE: 'Hợp đồng đang hiệu lực',
       EXPIRING_SOON: 'Sắp hết hạn hợp đồng',
       RENEWAL_PENDING: 'Đang chờ chốt gia hạn',
+      EARLY_TERMINATION_PENDING: 'Chờ admin duyệt kết thúc sớm',
       REJECTED: 'Đã bị từ chối',
       CANCELLED: 'Đã huỷ',
       PAYMENT_FAILED: 'Thanh toán lỗi',
       COMPLETED: 'Đã hoàn tất thuê'
     };
-    return map[status];
+    return map[booking.status];
+  }
+
+  private isEarlyTerminated(booking: RentalBooking): boolean {
+    const message = booking.paymentMessage?.toLowerCase() ?? '';
+    const note = booking.landlordNote?.toLowerCase() ?? '';
+    return message.includes('kết thúc hợp đồng sớm') || note.includes('kết thúc hợp đồng trước hạn');
   }
 
   paymentLabel(status: RentalPaymentStatus): string {

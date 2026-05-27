@@ -72,6 +72,18 @@ export class BookingService {
     return this.http.patch<ApiResponse<RentalBooking>>(`${this.API}/${id}/reject-renewal`, payload);
   }
 
+  terminateContractEarly(roomId: number, payload?: { note?: string }): Observable<ApiResponse<RentalBooking>> {
+    return this.http.patch<ApiResponse<RentalBooking>>(`${this.API}/rooms/${roomId}/terminate-early`, payload ?? {});
+  }
+
+  approveEarlyTermination(id: number, payload?: { note?: string }): Observable<ApiResponse<RentalBooking>> {
+    return this.http.patch<ApiResponse<RentalBooking>>(`${this.API}/${id}/approve-early-termination`, payload ?? {});
+  }
+
+  rejectEarlyTermination(id: number, payload?: { note?: string }): Observable<ApiResponse<RentalBooking>> {
+    return this.http.patch<ApiResponse<RentalBooking>>(`${this.API}/${id}/reject-early-termination`, payload ?? {});
+  }
+
   landlordDecision(
     id: number,
     payload: { action: 'APPROVE' | 'REJECT'; note?: string }
