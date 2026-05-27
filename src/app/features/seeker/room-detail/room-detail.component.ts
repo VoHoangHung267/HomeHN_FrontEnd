@@ -114,6 +114,14 @@ export class RoomDetailComponent implements OnInit {
     location: 0, price: 0, landlord: 0, hygiene: 0
   };
 
+  reviewCount = computed(() => this.reviews().length);
+  reviewAverage = computed(() => {
+    const reviews = this.reviews();
+    if (!reviews.length) return 0;
+    const total = reviews.reduce((sum, review) => sum + review.rating, 0);
+    return Math.round((total / reviews.length) * 10) / 10;
+  });
+
   // â”€â”€ Lifecycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   ngOnInit(): void {
     this.route.paramMap.subscribe(p => {

@@ -137,19 +137,19 @@
       <!-- Reviews section -->
       <div class="reviews-section">
         <div class="reviews-header">
-          <h3>
-            Đánh giá
-            @if ((r.reviewCount ?? 0) > 0) {
-            <span class="review-avg">
-              ⭐ {{ r.avgRating | number:'1.1-1' }}
-              <span class="review-cnt">({{ r.reviewCount }} đánh giá)</span>
-            </span>
-            }
-          </h3>
+            <h3>
+              Đánh giá
+            @if (reviewCount() > 0) {
+              <span class="review-avg">
+              ⭐ {{ reviewAverage() | number:'1.1-1' }}
+              <span class="review-cnt">({{ reviewCount() }} đánh giá)</span>
+              </span>
+              }
+            </h3>
         </div>
 
         <!-- Star rating overview -->
-        @if ((r.reviewCount ?? 0) > 0) {
+        @if (reviewCount() > 0) {
         <div class="rating-bar">
           @for (star of [5,4,3,2,1]; track star) {
           <div class="rating-row">
@@ -384,7 +384,7 @@
           </div>
           }
         </div>
-        } @else if ((r.reviewCount ?? 0) === 0) {
+        } @else if (reviewCount() === 0) {
         <div class="no-reviews">Chưa có đánh giá nào. Hãy là người đầu tiên!</div>
         }
       </div>
