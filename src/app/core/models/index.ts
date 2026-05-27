@@ -1,7 +1,7 @@
 ﻿// src/app/core/models/index.ts
 
 export type Role               = 'ADMIN' | 'LANDLORD' | 'SEEKER';
-export type RoomStatus         = 'ACTIVE' | 'PENDING' | 'REJECTED' | 'HIDDEN' | 'EXPIRED' | 'RENTED';
+export type RoomStatus         = 'ACTIVE' | 'PENDING' | 'REJECTED' | 'HIDDEN' | 'EXPIRED' | 'RENTED' | 'AVAILABLE_SOON' | 'HIDDEN_REVIEW';
 export type RoomType           = 'PHONG_TRO' | 'CHUNG_CU_MINI' | 'STUDIO' | 'NGAN_PHONG' | 'NHA_NGUYEN_CAN';
 export type GenderRequirement  = 'ALL' | 'MALE' | 'FEMALE';
 
@@ -73,6 +73,7 @@ export interface Room {
   favorited: boolean;
   avgRating?: number;
   reviewCount?: number;
+  availableFrom?: string;
 }
 
 export interface RoomFilter {
@@ -198,15 +199,39 @@ export interface ViewingAppointment {
 }
 
 export type RentalBookingStatus =
-  'PENDING_PAYMENT' | 'DEPOSIT_PAID' | 'CONFIRMED' | 'REJECTED' | 'CANCELLED' | 'PAYMENT_FAILED';
+  'REQUESTED' | 'PENDING_PAYMENT' | 'DEPOSIT_PAID' | 'ACTIVE' | 'EXPIRING_SOON' | 'RENEWAL_PENDING' | 'REJECTED' | 'CANCELLED' | 'PAYMENT_FAILED' | 'COMPLETED';
 
 export type RentalPaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'CANCELLED';
+export type RentalPaymentMethod = 'VNPAY' | 'CASH';
+export type ContractAdjustmentStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type ContractAdjustmentProposerRole = 'SEEKER' | 'LANDLORD';
+
+export interface ContractAdjustment {
+  id: number;
+  bookingId: number;
+  proposerRole: ContractAdjustmentProposerRole;
+  extensionMonths?: number;
+  proposedMonthlyRent?: number;
+  proposedDepositAmount?: number;
+  proposedElectricPrice?: number;
+  proposedWaterPrice?: number;
+  proposedOtherFees?: number;
+  proposedContractTerms?: string;
+  proposalNote?: string;
+  status: ContractAdjustmentStatus;
+  responderRole?: ContractAdjustmentProposerRole;
+  responseNote?: string;
+  respondedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface RentalBooking {
   id: number;
   roomId: number;
   roomTitle: string;
   roomPrimaryImage: string;
+  roomStatus?: RoomStatus;
   seekerId: number;
   seekerName: string;
   landlordId: number;
@@ -216,10 +241,14 @@ export interface RentalBooking {
   tenantEmail?: string;
   tenantIdentityNumber?: string;
   moveInDate: string;
+  contractEndDate?: string;
   leaseMonths: number;
   occupantCount: number;
   monthlyRent: number;
   depositAmount: number;
+  electricPrice?: number;
+  waterPrice?: number;
+  otherFees?: number;
   contractCode: string;
   contractTerms: string;
   note?: string;
@@ -227,6 +256,7 @@ export interface RentalBooking {
   status: RentalBookingStatus;
   paymentStatus: RentalPaymentStatus;
   paymentProvider: string;
+  paymentMethod?: RentalPaymentMethod;
   paymentOrderId?: string;
   paymentPayUrl?: string;
   paymentDeeplink?: string;
@@ -235,7 +265,6 @@ export interface RentalBooking {
   paymentResultCode?: number;
   paymentMessage?: string;
   depositPaidAt?: string;
-  confirmedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -260,7 +289,9 @@ export const STATUS_LABELS: Record<RoomStatus, string> = {
   REJECTED: 'Bị từ chối',
   HIDDEN:   'Đã ẩn',
   EXPIRED:  'Hết hạn',
-  RENTED:   'Đã cho thuê'
+  RENTED:   'Đã cho thuê',
+  AVAILABLE_SOON: 'Sắp trống',
+  HIDDEN_REVIEW: 'Tạm ẩn chờ xử lý'
 };
 
 export const DISTRICTS_HN = [

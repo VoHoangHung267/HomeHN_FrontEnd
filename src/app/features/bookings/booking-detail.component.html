@@ -14,7 +14,7 @@
           <div class="section-header">
             <div>
               <h1>{{ b.roomTitle }}</h1>
-              <div class="contract-code">Mã hợp đồng dự kiến: {{ b.contractCode }}</div>
+              <div class="contract-code">Mã hợp đồng nháp: {{ b.contractCode }}</div>
             </div>
             <div class="status-stack">
               <span class="status-badge status-{{ b.status.toLowerCase() }}">{{ statusLabel(b.status) }}</span>
@@ -44,15 +44,15 @@
               <div>{{ b.moveInDate | date:'dd/MM/yyyy' }}</div>
             </div>
             <div class="field">
+              <label>Ngày hết hạn hợp đồng</label>
+              <div>{{ b.contractEndDate ? (b.contractEndDate | date:'dd/MM/yyyy') : 'Chưa xác định' }}</div>
+            </div>
+            <div class="field">
               <label>Thời hạn thuê</label>
               <div>{{ b.leaseMonths }} tháng</div>
             </div>
             <div class="field">
-              <label>Số người ở</label>
-              <div>{{ b.occupantCount }}</div>
-            </div>
-            <div class="field">
-              <label>Ngày tạo đơn</label>
+              <label>Ngày tạo yêu cầu</label>
               <div>{{ b.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
             </div>
           </div>
@@ -63,16 +63,17 @@
               <div>{{ b.note }}</div>
             </div>
           }
+
           @if (b.landlordNote) {
             <div class="note-box landlord">
-              <strong>Ghi chú từ chủ nhà:</strong>
+              <strong>Ghi chú từ chủ trọ:</strong>
               <div>{{ b.landlordNote }}</div>
             </div>
           }
         </div>
 
         <div class="card section-card">
-          <h2>Thông tin cọc và hợp đồng</h2>
+          <h2>Điều khoản và đặt cọc</h2>
           <div class="grid two-col">
             <div class="field">
               <label>Tiền thuê</label>
@@ -83,19 +84,143 @@
               <div>{{ b.depositAmount | number:'1.0-0' }}đ</div>
             </div>
             <div class="field">
-              <label>Nhà cung cấp thanh toán</label>
-              <div>{{ b.paymentProvider }}</div>
+              <label>Phương thức cọc</label>
+              <div>{{ paymentMethodLabel(b.paymentMethod || b.paymentProvider) }}</div>
             </div>
             <div class="field">
-              <label>Thời điểm cọc</label>
+              <label>Ngày nhận cọc</label>
               <div>{{ b.depositPaidAt ? (b.depositPaidAt | date:'dd/MM/yyyy HH:mm') : 'Chưa thanh toán' }}</div>
+            </div>
+            <div class="field">
+              <label>Giá điện</label>
+              <div>{{ (b.electricPrice ?? 0) | number:'1.0-0' }}đ</div>
+            </div>
+            <div class="field">
+              <label>Giá nước</label>
+              <div>{{ (b.waterPrice ?? 0) | number:'1.0-0' }}đ</div>
+            </div>
+            <div class="field">
+              <label>Phí dịch vụ khác</label>
+              <div>{{ (b.otherFees ?? 0) | number:'1.0-0' }}đ</div>
             </div>
           </div>
 
           <div class="contract-box">
-            <label>Điều khoản hợp đồng dự kiến</label>
+            <label>Điều khoản hợp đồng</label>
             <p>{{ b.contractTerms }}</p>
           </div>
+
+          @if (b.status === 'DEPOSIT_PAID' || b.status === 'ACTIVE' || b.status === 'EXPIRING_SOON' || b.status === 'RENEWAL_PENDING') {
+            <div class="note-box landlord">
+              <strong>Biên nhận cọc</strong>
+              <div>Số tiền: {{ b.depositAmount | number:'1.0-0' }}đ</div>
+              <div>Ngày nhận cọc: {{ b.depositPaidAt ? (b.depositPaidAt | date:'dd/MM/yyyy HH:mm') : 'Chưa xác nhận' }}</div>
+              <div>Điều kiện hoàn trả: Theo điều khoản hiện hành đã chốt trước khi đặt cọc.</div>
+            </div>
+          }
+        </div>
+
+        <div class="card section-card">
+          <h2>Điều chỉnh hợp đồng</h2>
+
+          @if (canCreateAdjustment()) {
+            <div class="grid two-col">
+              <div class="field">
+                <label>Gia hạn thêm (tháng)</label>
+                <input class="form-control" type="number" min="1" [(ngModel)]="renewalMonths" />
+              </div>
+              <div class="field">
+                <label>Tiền thuê mới</label>
+                <input class="form-control" type="number" min="0" [(ngModel)]="adjustmentMonthlyRent" />
+              </div>
+              <div class="field">
+                <label>Tiền cọc mới</label>
+                <input class="form-control" type="number" min="0" [(ngModel)]="adjustmentDepositAmount" />
+              </div>
+              <div class="field">
+                <label>Giá điện mới</label>
+                <input class="form-control" type="number" min="0" [(ngModel)]="adjustmentElectricPrice" />
+              </div>
+              <div class="field">
+                <label>Giá nước mới</label>
+                <input class="form-control" type="number" min="0" [(ngModel)]="adjustmentWaterPrice" />
+              </div>
+              <div class="field">
+                <label>Phí dịch vụ khác mới</label>
+                <input class="form-control" type="number" min="0" [(ngModel)]="adjustmentOtherFees" />
+              </div>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>Điều khoản hợp đồng đề xuất</label>
+              <textarea class="form-control" rows="4" [(ngModel)]="renewalTerms"></textarea>
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>Ghi chú đề xuất</label>
+              <textarea class="form-control" rows="3" [(ngModel)]="adjustmentProposalNote"></textarea>
+            </div>
+            <button class="btn btn-primary" style="margin-top:12px"
+                    (click)="createAdjustment()" [disabled]="adjustmentSaving()">Gửi đề xuất điều chỉnh</button>
+          }
+
+          @if (pendingAdjustment(); as pending) {
+            <div class="note-box" style="margin-top:12px">
+              <strong>Đề xuất đang chờ phản hồi</strong>
+              <div>Bên đề xuất: {{ pending.proposerRole === 'SEEKER' ? 'Người thuê' : 'Chủ trọ' }}</div>
+              @if (pending.extensionMonths) {
+                <div>Gia hạn thêm: {{ pending.extensionMonths }} tháng</div>
+              }
+              @if (pending.proposedMonthlyRent !== undefined && pending.proposedMonthlyRent !== null) {
+                <div>Tiền thuê đề xuất: {{ pending.proposedMonthlyRent | number:'1.0-0' }}đ</div>
+              }
+              @if (pending.proposedDepositAmount !== undefined && pending.proposedDepositAmount !== null) {
+                <div>Tiền cọc đề xuất: {{ pending.proposedDepositAmount | number:'1.0-0' }}đ</div>
+              }
+              @if (pending.proposedElectricPrice !== undefined && pending.proposedElectricPrice !== null) {
+                <div>Giá điện đề xuất: {{ pending.proposedElectricPrice | number:'1.0-0' }}đ</div>
+              }
+              @if (pending.proposedWaterPrice !== undefined && pending.proposedWaterPrice !== null) {
+                <div>Giá nước đề xuất: {{ pending.proposedWaterPrice | number:'1.0-0' }}đ</div>
+              }
+              @if (pending.proposedOtherFees !== undefined && pending.proposedOtherFees !== null) {
+                <div>Phí dịch vụ khác đề xuất: {{ pending.proposedOtherFees | number:'1.0-0' }}đ</div>
+              }
+              @if (pending.proposalNote) {
+                <div>Ghi chú: {{ pending.proposalNote }}</div>
+              }
+            </div>
+
+            @if (!isPendingAdjustmentMine()) {
+              <div class="field" style="margin-top:12px">
+                <label>Phản hồi</label>
+                <textarea class="form-control" rows="3" [(ngModel)]="adjustmentResponseNote"></textarea>
+              </div>
+              <div class="action-group" style="margin-top:12px">
+                <button class="btn btn-primary btn-block"
+                        (click)="respondAdjustment(pending, 'APPROVED')"
+                        [disabled]="adjustmentSaving()">Chấp thuận điều chỉnh</button>
+                <button class="btn btn-danger btn-block"
+                        (click)="respondAdjustment(pending, 'REJECTED')"
+                        [disabled]="adjustmentSaving()">Từ chối điều chỉnh</button>
+              </div>
+            } @else {
+              <div class="hint-box">Đề xuất của bạn đang chờ bên còn lại phản hồi.</div>
+            }
+          }
+
+          @if (adjustments().length > 0) {
+            <div class="contract-box" style="margin-top:16px">
+              <label>Lịch sử điều chỉnh</label>
+              @for (item of adjustments(); track item.id) {
+                <div style="padding:10px 0; border-bottom:1px solid #e5e7eb">
+                  <div><strong>{{ item.proposerRole === 'SEEKER' ? 'Người thuê' : 'Chủ trọ' }}</strong> - {{ item.status }}</div>
+                  <div>{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+                  @if (item.responseNote) {
+                    <div>Phản hồi: {{ item.responseNote }}</div>
+                  }
+                </div>
+              }
+            </div>
+          }
         </div>
       </div>
 
@@ -106,35 +231,98 @@
                class="side-image" />
           <div class="side-title">{{ b.roomTitle }}</div>
 
-          @if (!isLandlordView() && (b.status === 'PENDING_PAYMENT' || b.status === 'PAYMENT_FAILED')) {
-            <button class="btn btn-primary btn-block"
-                    (click)="openPayment()"
-                    [disabled]="paymentOpening()">
-              {{ paymentOpening() ? 'Đang chuyển sang VNPAY...' : 'Thanh toán cọc bằng VNPAY' }}
-            </button>
+          @if (!isLandlordView() && b.status === 'REQUESTED') {
+            <div class="hint-box">Yêu cầu thuê đã được gửi. Hệ thống đang chờ chủ trọ xem xét.</div>
+            <button class="btn btn-outline btn-block" (click)="cancelBooking()">Huỷ yêu cầu thuê</button>
           }
 
           @if (!isLandlordView() && (b.status === 'PENDING_PAYMENT' || b.status === 'PAYMENT_FAILED')) {
-            <button class="btn btn-outline btn-block" (click)="cancelBooking()">Huỷ đơn thuê</button>
+            <div class="hint-box">Chủ trọ đã chấp thuận. Bạn hãy đọc điều khoản trước khi đặt cọc.</div>
+            @if ((b.paymentMethod || b.paymentProvider) === 'VNPAY') {
+              <button class="btn btn-primary btn-block"
+                      (click)="openPayment()"
+                      [disabled]="paymentOpening()">
+                {{ paymentOpening() ? 'Đang chuyển sang VNPAY...' : 'Thanh toán cọc bằng VNPAY' }}
+              </button>
+            } @else {
+              <div class="hint-box">Bạn sẽ đặt cọc trực tiếp cho chủ trọ. Sau khi nhận cọc, chủ trọ sẽ xác nhận trên hệ thống.</div>
+            }
+            <button class="btn btn-outline btn-block" (click)="cancelBooking()">Huỷ yêu cầu thuê</button>
           }
 
-          @if (isLandlordView() && b.status === 'DEPOSIT_PAID') {
+          @if (!isLandlordView() && b.status === 'EXPIRING_SOON') {
+            <input type="number" class="form-control" min="1" [(ngModel)]="renewalMonths" placeholder="Số tháng muốn gia hạn" />
             <textarea class="form-control"
                       rows="3"
                       [(ngModel)]="decisionNote"
-                      placeholder="Ghi chú cho người thuê hoặc thông tin bàn giao..."></textarea>
+                      placeholder="Đề xuất gia hạn hoặc ghi chú thêm"></textarea>
+            <button class="btn btn-primary btn-block"
+                    (click)="requestRenewal()"
+                    [disabled]="decisionSaving()">Yêu cầu gia hạn</button>
+          }
+
+          @if (!isLandlordView() && (b.status === 'DEPOSIT_PAID' || b.status === 'ACTIVE' || b.status === 'RENEWAL_PENDING')) {
+            <div class="hint-box">Hợp đồng đang có hiệu lực hoặc đang chờ xử lý gia hạn. Theo dõi thêm thông báo từ chủ trọ.</div>
+          }
+
+          @if (isLandlordView() && b.status === 'REQUESTED') {
+            <textarea class="form-control"
+                      rows="3"
+                      [(ngModel)]="decisionNote"
+                      placeholder="Ghi chú khi chấp thuận hoặc từ chối"></textarea>
             <div class="action-group">
               <button class="btn btn-primary btn-block"
-                      (click)="landlordDecision('CONFIRMED')"
-                      [disabled]="decisionSaving()">Xác nhận thuê</button>
+                      (click)="landlordDecision('APPROVE')"
+                      [disabled]="decisionSaving()">Chấp thuận và tạo link cọc</button>
               <button class="btn btn-danger btn-block"
-                      (click)="landlordDecision('REJECTED')"
+                      (click)="landlordDecision('REJECT')"
                       [disabled]="decisionSaving()">Từ chối</button>
             </div>
           }
 
           @if (isLandlordView() && b.status === 'PENDING_PAYMENT') {
-            <div class="hint-box">Đang chờ người thuê thanh toán cọc qua VNPAY.</div>
+            @if ((b.paymentMethod || b.paymentProvider) === 'VNPAY') {
+              <div class="hint-box">Đã gửi điều khoản và link thanh toán cọc cho người thuê.</div>
+            } @else {
+              <textarea class="form-control"
+                        rows="3"
+                        [(ngModel)]="cashReceiptNote"
+                        placeholder="Ghi chú biên nhận cọc: số tiền, ngày nhận, điều kiện hoàn trả..."></textarea>
+              <button class="btn btn-primary btn-block"
+                      (click)="confirmCashDeposit()"
+                      [disabled]="decisionSaving()">Xác nhận nhận cọc tiền mặt</button>
+            }
+          }
+
+          @if (isLandlordView() && b.status === 'EXPIRING_SOON') {
+            <textarea class="form-control"
+                      rows="3"
+                      [(ngModel)]="decisionNote"
+                      placeholder="Ghi chú cho người thuê hoặc khách mới"></textarea>
+            <div class="action-group">
+              @if (b.roomStatus !== 'AVAILABLE_SOON') {
+                <button class="btn btn-outline btn-block" (click)="openForNextViewers()">Mở cho khách mới xem phòng</button>
+              }
+              @if (b.roomStatus === 'AVAILABLE_SOON') {
+                <button class="btn btn-primary btn-block" (click)="waitForRenewal()">Chờ gia hạn từ khách hiện tại</button>
+              }
+            </div>
+          }
+
+          @if (isLandlordView() && b.status === 'RENEWAL_PENDING') {
+            <input type="number" class="form-control" min="1" [(ngModel)]="renewalMonths" placeholder="Số tháng gia hạn đã chốt" />
+            <textarea class="form-control"
+                      rows="4"
+                      [(ngModel)]="renewalTerms"
+                      placeholder="Điều khoản gia hạn đã thống nhất"></textarea>
+            <textarea class="form-control"
+                      rows="3"
+                      [(ngModel)]="decisionNote"
+                      placeholder="Ghi chú khi chốt gia hạn hoặc không gia hạn"></textarea>
+            <div class="action-group">
+              <button class="btn btn-primary btn-block" (click)="approveRenewal()" [disabled]="decisionSaving()">Chấp thuận gia hạn</button>
+              <button class="btn btn-danger btn-block" (click)="rejectRenewal()" [disabled]="decisionSaving()">Không gia hạn</button>
+            </div>
           }
 
           @if (b.paymentMessage) {

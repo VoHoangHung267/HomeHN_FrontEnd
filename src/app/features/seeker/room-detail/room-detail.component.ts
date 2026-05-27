@@ -76,6 +76,7 @@ export class RoomDetailComponent implements OnInit {
   bookingMoveInDate = signal('');
   bookingLeaseMonths = signal(6);
   bookingOccupantCount = signal(1);
+  bookingPaymentMethod = signal<'VNPAY' | 'CASH'>('VNPAY');
   bookingNote = signal('');
   bookingSending = signal(false);
   bookingError = signal('');
@@ -190,6 +191,7 @@ export class RoomDetailComponent implements OnInit {
     this.bookingMoveInDate.set(this.toDateValue(new Date()));
     this.bookingLeaseMonths.set(6);
     this.bookingOccupantCount.set(1);
+    this.bookingPaymentMethod.set('VNPAY');
     this.bookingNote.set('');
     this.bookingError.set('');
   }
@@ -219,6 +221,7 @@ export class RoomDetailComponent implements OnInit {
       moveInDate: this.bookingMoveInDate(),
       leaseMonths: this.bookingLeaseMonths(),
       occupantCount: this.bookingOccupantCount(),
+      paymentMethod: this.bookingPaymentMethod(),
       note: this.bookingNote().trim() || undefined
     }).subscribe({
       next: res => {

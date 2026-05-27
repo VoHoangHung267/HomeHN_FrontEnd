@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ApiResponse, RentalBooking, RentalBookingStatus } from '../models';
+import { ApiResponse, RentalBooking } from '../models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -17,6 +17,7 @@ export class BookingService {
     moveInDate: string;
     leaseMonths: number;
     occupantCount: number;
+    paymentMethod: 'VNPAY' | 'CASH';
     note?: string;
   }): Observable<ApiResponse<RentalBooking>> {
     return this.http.post<ApiResponse<RentalBooking>>(`${this.API}/rooms/${roomId}`, payload);
@@ -42,9 +43,25 @@ export class BookingService {
     return this.http.post<ApiResponse<RentalBooking>>(`${this.API}/${id}/vnpay/refresh`, {});
   }
 
+  confirmCashDeposit(id: number, receiptNote: string): Observable<ApiResponse<RentalBooking>> {
+    return this.http.patch<ApiResponse<RentalBooking>>(`${this.API}/${id}/confirm-cash-deposit`, { receiptNote });
+  }
+
+  requestRenewal(id: number, payload: { leaseMonths: number; note?: string }): Observable<ApiResponse<RentalBooking>> {
+    return this.http.patch<ApiResponse<RentalBooking>>(`${this.API}/${id}/request-renewal`, payload);
+  }
+
+  approveRenewal(id: number, payload: { leaseMonths: number; contractTerms?: string; note?: string }): Observable<ApiResponse<RentalBooking>> {
+    return this.http.patch<ApiResponse<RentalBooking>>(`${this.API}/${id}/approve-renewal`, payload);
+  }
+
+  rejectRenewal(id: number, payload: { note?: string }): Observable<ApiResponse<RentalBooking>> {
+    return this.http.patch<ApiResponse<RentalBooking>>(`${this.API}/${id}/reject-renewal`, payload);
+  }
+
   landlordDecision(
     id: number,
-    payload: { status: Extract<RentalBookingStatus, 'CONFIRMED' | 'REJECTED'>; note?: string }
+    payload: { action: 'APPROVE' | 'REJECT'; note?: string }
   ): Observable<ApiResponse<RentalBooking>> {
     return this.http.patch<ApiResponse<RentalBooking>>(`${this.API}/${id}/landlord-status`, payload);
   }

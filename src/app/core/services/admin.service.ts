@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ApiResponse, Page, Room, User } from '../models';
+import { ApiResponse, Page, Review, Room, User } from '../models';
 import { environment } from '../../../environments/environment';
 
 export interface StatsResponse {
@@ -25,6 +25,11 @@ export interface ReportItem {
   landlordRespondedAt?: string;
   createdAt: string;
 }
+
+export type AdminReviewItem = Review & {
+  roomId: number;
+  roomTitle: string;
+};
 
 export interface AdminRoomFilter {
   keyword?: string; 
@@ -68,5 +73,13 @@ export class AdminService {
 
   resolveReport(id: number, note: string, status: string): Observable<ApiResponse<void>> {
     return this.http.patch<ApiResponse<void>>(`${this.API}/reports/${id}/resolve`, { note, status });
+  }
+
+  getReviews(): Observable<ApiResponse<AdminReviewItem[]>> {
+    return this.http.get<ApiResponse<AdminReviewItem[]>>(`${this.API}/reviews`);
+  }
+
+  deleteReview(id: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.API}/reviews/${id}`);
   }
 }

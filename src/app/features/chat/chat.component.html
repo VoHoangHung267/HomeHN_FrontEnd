@@ -175,7 +175,7 @@
               @if (canCreateActions()) {
                 <div class="action-card">
                   <h3>Tạo yêu cầu thuê phòng</h3>
-                  <p class="card-sub">Điền thông tin thuê ngay trong chat, sau đó có thể thanh toán cọc.</p>
+                  <p class="card-sub">Điền thông tin thuê ngay trong chat, sau đó chọn phương thức đặt cọc phù hợp.</p>
 
                   <div class="form-grid">
                     <div class="form-group">
@@ -205,6 +205,13 @@
                     <div class="form-group">
                       <label class="form-label">Số người ở</label>
                       <input type="number" min="1" class="form-control" [(ngModel)]="bookingOccupantCount" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Phương thức cọc</label>
+                      <select class="form-control" [(ngModel)]="bookingPaymentMethod">
+                        <option value="VNPAY">Thanh toán qua VNPAY</option>
+                        <option value="CASH">Tiền mặt / chuyển khoản trực tiếp</option>
+                      </select>
                     </div>
                   </div>
 

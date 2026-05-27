@@ -60,6 +60,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   bookingMoveInDate = '';
   bookingLeaseMonths = 6;
   bookingOccupantCount = 1;
+  bookingPaymentMethod: 'VNPAY' | 'CASH' = 'VNPAY';
   bookingNote = '';
   bookingSending = signal(false);
   paymentOpeningId = signal<number | null>(null);
@@ -298,6 +299,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       moveInDate: this.bookingMoveInDate,
       leaseMonths: this.bookingLeaseMonths,
       occupantCount: this.bookingOccupantCount,
+      paymentMethod: this.bookingPaymentMethod,
       note: this.bookingNote.trim() || undefined
     }).subscribe({
       next: r => {
@@ -322,7 +324,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   canPayBooking(booking: RentalBooking): boolean {
-    return this.auth.isSeeker() && ['PENDING_PAYMENT', 'PAYMENT_FAILED'].includes(booking.status);
+    return this.auth.isSeeker()
+      && (booking.paymentMethod || booking.paymentProvider) === 'VNPAY'
+      && ['PENDING_PAYMENT', 'PAYMENT_FAILED'].includes(booking.status);
   }
 
   openPayment(booking: RentalBooking): void {
@@ -368,12 +372,16 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   bookingStatusLabel(status: RentalBookingStatus): string {
     const map: Record<RentalBookingStatus, string> = {
+      REQUESTED: 'Chờ chủ trọ xác nhận',
       PENDING_PAYMENT: 'Chờ thanh toán cọc',
-      DEPOSIT_PAID: 'Đã thanh toán cọc',
-      CONFIRMED: 'Đã xác nhận thuê',
+      DEPOSIT_PAID: 'Đã đặt cọc',
+      ACTIVE: 'Hợp đồng đang hiệu lực',
+      EXPIRING_SOON: 'Sắp hết hạn hợp đồng',
+      RENEWAL_PENDING: 'Đang chờ chốt gia hạn',
       REJECTED: 'Đã bị từ chối',
       CANCELLED: 'Đã huỷ',
-      PAYMENT_FAILED: 'Thanh toán lỗi'
+      PAYMENT_FAILED: 'Thanh toán lỗi',
+      COMPLETED: 'Đã hoàn tất thuê'
     };
     return map[status];
   }
@@ -400,6 +408,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.bookingMoveInDate = this.toDateValue(new Date());
     this.bookingLeaseMonths = 6;
     this.bookingOccupantCount = 1;
+    this.bookingPaymentMethod = 'VNPAY';
     this.bookingNote = '';
   }
 

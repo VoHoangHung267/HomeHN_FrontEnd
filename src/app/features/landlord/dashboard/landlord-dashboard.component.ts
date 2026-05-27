@@ -180,7 +180,7 @@ export class LandlordDashboardComponent implements OnInit {
   }
 
   canReactivate(room: Room): boolean {
-    return room.status === 'HIDDEN' || room.status === 'RENTED';
+    return room.status === 'HIDDEN' || room.status === 'RENTED' || room.status === 'HIDDEN_REVIEW' || room.status === 'AVAILABLE_SOON';
   }
 
   canMarkRented(room: Room): boolean {

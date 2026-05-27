@@ -21,7 +21,6 @@ export class MyBookingsComponent implements OnInit {
 
   bookings = signal<RentalBooking[]>([]);
   loading = signal(false);
-  error = signal('');
 
   ngOnInit(): void {
     this.load();
@@ -29,7 +28,6 @@ export class MyBookingsComponent implements OnInit {
 
   load(): void {
     this.loading.set(true);
-    this.error.set('');
     const request$ = this.auth.isLandlord() || this.auth.isAdmin()
       ? this.bookingService.getLandlordBookings()
       : this.bookingService.getMyBookings();
@@ -48,12 +46,16 @@ export class MyBookingsComponent implements OnInit {
 
   statusLabel(status: RentalBookingStatus): string {
     const map: Record<RentalBookingStatus, string> = {
+      REQUESTED: 'Chờ chủ trọ xác nhận',
       PENDING_PAYMENT: 'Chờ thanh toán cọc',
-      DEPOSIT_PAID: 'Đã thanh toán cọc',
-      CONFIRMED: 'Đã xác nhận thuê',
+      DEPOSIT_PAID: 'Đã đặt cọc',
+      ACTIVE: 'Hợp đồng đang hiệu lực',
+      EXPIRING_SOON: 'Sắp hết hạn hợp đồng',
+      RENEWAL_PENDING: 'Đang chờ chốt gia hạn',
       REJECTED: 'Đã bị từ chối',
       CANCELLED: 'Đã huỷ',
-      PAYMENT_FAILED: 'Thanh toán lỗi'
+      PAYMENT_FAILED: 'Thanh toán lỗi',
+      COMPLETED: 'Đã hoàn tất thuê'
     };
     return map[status];
   }

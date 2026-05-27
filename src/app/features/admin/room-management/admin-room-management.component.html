@@ -7,6 +7,10 @@
         Báo cáo vi phạm
         @if (reports().length > 0) { <span class="badge-red">{{ reports().length }}</span> }
       </button>
+      <button [class.active]="activeTab() === 'reviews'" (click)="activeTab.set('reviews')">
+        Đánh giá
+        @if (reviews().length > 0) { <span class="badge-red">{{ reviews().length }}</span> }
+      </button>
     </div>
   </div>
 
@@ -190,6 +194,47 @@
                 <button class="btn btn-outline btn-sm" (click)="openResolve(report)">Xử lý</button>
               </div>
             }
+          </div>
+        }
+      </div>
+    }
+  }
+
+  @if (activeTab() === 'reviews') {
+    @if (loadingReviews()) {
+      <div class="loading-rows">
+        @for (_ of [1,2,3]; track $index) {
+          <div class="skeleton" style="height:80px;border-radius:8px;margin-bottom:8px"></div>
+        }
+      </div>
+    }
+
+    @if (!loadingReviews() && reviews().length === 0) {
+      <div class="empty-state">
+        <div style="font-size:48px">📝</div>
+        <p>Không có đánh giá nào</p>
+      </div>
+    }
+
+    @if (!loadingReviews() && reviews().length > 0) {
+      <div class="reports-list">
+        @for (review of reviews(); track review.id) {
+          <div class="report-card">
+            <div class="report-header">
+              <div class="report-meta">
+                <span class="report-room">🏠 {{ review.roomTitle }}</span>
+                <span class="report-by">Đánh giá bởi: {{ review.reviewerName }}</span>
+                <span class="report-date">{{ review.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <span class="type-chip">{{ review.rating }}/5</span>
+            </div>
+            <div class="report-reason">
+              <strong>Nội dung:</strong> {{ review.comment || 'Không có nhận xét văn bản' }}
+            </div>
+            <div class="report-actions">
+              <a [routerLink]="['/rooms', review.roomId]" class="btn btn-ghost btn-sm" target="_blank">Xem phòng</a>
+              <button class="btn btn-danger btn-sm" (click)="deleteReview(review)">Xoá đánh giá</button>
+            </div>
           </div>
         }
       </div>

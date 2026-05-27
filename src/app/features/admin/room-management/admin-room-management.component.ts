@@ -1,10 +1,10 @@
-﻿import { Component, ChangeDetectionStrategy, DestroyRef, OnInit, signal, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, OnInit, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { AdminService, AdminRoomFilter, ReportItem } from '../../../core/services/admin.service';
-import { Room, ROOM_TYPE_LABELS, STATUS_LABELS, RoomStatus, DISTRICTS_HN } from '../../../core/models';
+import { AdminRoomFilter, AdminReviewItem, AdminService, ReportItem } from '../../../core/services/admin.service';
+import { DISTRICTS_HN, ROOM_TYPE_LABELS, Room, RoomStatus, STATUS_LABELS } from '../../../core/models';
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
@@ -21,42 +21,41 @@ export class AdminRoomManagementComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toast = inject(ToastService);
 
-  // â”€â”€ Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  activeTab = signal<'rooms' | 'reports'>('rooms');
+  activeTab = signal<'rooms' | 'reports' | 'reviews'>('rooms');
 
-  // â”€â”€ Rooms â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  rooms         = signal<Room[]>([]);
-  totalRooms    = signal(0);
-  totalPages    = signal(0);
-  currentPage   = signal(0);
-  loadingRooms  = signal(false);
+  rooms = signal<Room[]>([]);
+  totalRooms = signal(0);
+  totalPages = signal(0);
+  currentPage = signal(0);
+  loadingRooms = signal(false);
 
   filter: AdminRoomFilter = { page: 0, size: 20 };
-  readonly districts   = ['', ...DISTRICTS_HN];
-  readonly statusOpts  = [
+  readonly districts = ['', ...DISTRICTS_HN];
+  readonly statusOpts = [
     { value: '', label: 'Tất cả' },
-    { value: 'ACTIVE',   label: 'Đang hiăn thị' },
-    { value: 'PENDING',  label: 'Chờ duyệt' },
-    { value: 'HIDDEN',   label: 'Đã ẩn' },
+    { value: 'ACTIVE', label: 'Đang hiển thị' },
+    { value: 'PENDING', label: 'Chờ duyệt' },
+    { value: 'HIDDEN', label: 'Đã ẩn' },
     { value: 'REJECTED', label: 'Bị từ chối' },
-    { value: 'EXPIRED',  label: 'Hết hạn' },
-    { value: 'RENTED',   label: 'Đã cho thuê' },
+    { value: 'EXPIRED', label: 'Hết hạn' },
+    { value: 'RENTED', label: 'Đã cho thuê' }
   ];
 
-  // â”€â”€ Reports â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  reports        = signal<ReportItem[]>([]);
-  reportStatus   = signal<string>('PENDING');
+  reports = signal<ReportItem[]>([]);
+  reportStatus = signal<string>('PENDING');
   loadingReports = signal(false);
-  resolveNote    = signal('');
+  resolveNote = signal('');
   selectedReport = signal<ReportItem | null>(null);
   focusedReportId = signal<number | null>(null);
-
   readonly reportStatusOpts = [
-    { value: 'PENDING',   label: 'Chờ xử lý' },
-    { value: 'REVIEWED',  label: 'Đang xem xét' },
-    { value: 'RESOLVED',  label: 'Đã xử lý' },
-    { value: 'DISMISSED', label: 'Bỏ qua' },
+    { value: 'PENDING', label: 'Chờ xử lý' },
+    { value: 'REVIEWED', label: 'Đang xem xét' },
+    { value: 'RESOLVED', label: 'Đã xử lý' },
+    { value: 'DISMISSED', label: 'Bỏ qua' }
   ];
+
+  reviews = signal<AdminReviewItem[]>([]);
+  loadingReviews = signal(false);
 
   ngOnInit(): void {
     this.route.queryParamMap
@@ -73,9 +72,9 @@ export class AdminRoomManagementComponent implements OnInit {
         }
       });
     this.loadRooms();
+    this.loadReviews();
   }
 
-  // â”€â”€ Room methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   loadRooms(): void {
     this.loadingRooms.set(true);
     this.adminService.getAllRooms({ ...this.filter, page: this.currentPage() }).subscribe({
@@ -89,8 +88,16 @@ export class AdminRoomManagementComponent implements OnInit {
     });
   }
 
-  applyFilter(): void { this.currentPage.set(0); this.loadRooms(); }
-  resetFilter(): void { this.filter = { page: 0, size: 20 }; this.applyFilter(); }
+  applyFilter(): void {
+    this.currentPage.set(0);
+    this.loadRooms();
+  }
+
+  resetFilter(): void {
+    this.filter = { page: 0, size: 20 };
+    this.applyFilter();
+  }
+
   changePage(p: number): void {
     if (p < 0 || p >= this.resolvedTotalPages()) return;
     this.currentPage.set(p);
@@ -116,24 +123,6 @@ export class AdminRoomManagementComponent implements OnInit {
     });
   }
 
-  statusLabel(s: RoomStatus): string { return STATUS_LABELS[s] ?? s; }
-  typeLabel(t: string): string { return (ROOM_TYPE_LABELS as Record<string, string>)[t] ?? t; }
-
-  pageNumbers(): number[] {
-    const cur = this.currentPage(), total = this.resolvedTotalPages();
-    const start = Math.max(0, cur - 2);
-    const end   = Math.min(total - 1, cur + 2);
-    const length = Math.max(0, end - start + 1);
-    return Array.from({ length }, (_, i) => start + i);
-  }
-
-  paginationLabel(): string {
-    const total = this.resolvedTotalPages();
-    if (total === 0) return 'Trang 0 / 0';
-    return `Trang ${this.currentPage() + 1} / ${total}`;
-  }
-
-  // â”€â”€ Report methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   loadReports(): void {
     this.loadingReports.set(true);
     this.adminService.getReports(this.reportStatus()).subscribe({
@@ -163,19 +152,66 @@ export class AdminRoomManagementComponent implements OnInit {
   }
 
   confirmResolve(newStatus: string): void {
-    const r = this.selectedReport();
-    if (!r) return;
+    const report = this.selectedReport();
     const note = this.resolveNote().trim();
-    if (!note) { this.toast.error('Vui lòng nhập ghi chú xử lý'); return; }
-    this.adminService.resolveReport(r.id, note, newStatus).subscribe(() => {
-      this.reports.update(list => list.filter(x => x.id !== r.id));
+    if (!report) return;
+    if (!note) {
+      this.toast.error('Vui lòng nhập ghi chú xử lý');
+      return;
+    }
+
+    this.adminService.resolveReport(report.id, note, newStatus).subscribe(() => {
+      this.reports.update(list => list.filter(item => item.id !== report.id));
       this.selectedReport.set(null);
       this.toast.success('Đã cập nhật trạng thái báo cáo');
     });
   }
 
+  loadReviews(): void {
+    this.loadingReviews.set(true);
+    this.adminService.getReviews().subscribe({
+      next: r => {
+        this.reviews.set(r.data);
+        this.loadingReviews.set(false);
+      },
+      error: () => this.loadingReviews.set(false)
+    });
+  }
+
+  deleteReview(review: AdminReviewItem): void {
+    this.toast.confirm(`Xoá đánh giá của "${review.reviewerName}" cho phòng "${review.roomTitle}"?`, () => {
+      this.adminService.deleteReview(review.id).subscribe(() => {
+        this.reviews.update(list => list.filter(item => item.id !== review.id));
+        this.toast.success('Đã xoá đánh giá');
+      });
+    });
+  }
+
   reportStatusLabel(s: string): string {
     return this.reportStatusOpts.find(o => o.value === s)?.label ?? s;
+  }
+
+  statusLabel(s: RoomStatus): string {
+    return STATUS_LABELS[s] ?? s;
+  }
+
+  typeLabel(t: string): string {
+    return (ROOM_TYPE_LABELS as Record<string, string>)[t] ?? t;
+  }
+
+  pageNumbers(): number[] {
+    const cur = this.currentPage();
+    const total = this.resolvedTotalPages();
+    const start = Math.max(0, cur - 2);
+    const end = Math.min(total - 1, cur + 2);
+    const length = Math.max(0, end - start + 1);
+    return Array.from({ length }, (_, i) => start + i);
+  }
+
+  paginationLabel(): string {
+    const total = this.resolvedTotalPages();
+    if (total === 0) return 'Trang 0 / 0';
+    return `Trang ${this.currentPage() + 1} / ${total}`;
   }
 
   private scrollToFocusedReport(): void {

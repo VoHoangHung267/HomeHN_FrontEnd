@@ -484,7 +484,7 @@
         <button class="modal-close" (click)="showBookingModal.set(false)">✕</button>
       </div>
 
-      <p class="modal-sub">Nhập thông tin thuê phòng, sau đó hệ thống sẽ tạo đơn và link thanh toán cọc VNPAY.</p>
+      <p class="modal-sub">Nhập thông tin thuê phòng và chọn phương thức đặt cọc phù hợp.</p>
 
       <div class="form-group">
         <label class="form-label">Họ tên người thuê *</label>
@@ -520,6 +520,9 @@
                type="date"
                [value]="bookingMoveInDate()"
                (input)="bookingMoveInDate.set($any($event.target).value)" />
+        @if (room()?.status === 'AVAILABLE_SOON' && room()?.availableFrom) {
+          <div class="modal-sub" style="margin-top:6px">Phòng này dự kiến trống từ {{ room()?.availableFrom | date:'dd/MM/yyyy' }}.</div>
+        }
       </div>
 
       <div class="form-group" style="margin-top:12px">
@@ -542,6 +545,16 @@
       </div>
 
       <div class="form-group" style="margin-top:12px">
+        <label class="form-label">Phương thức đặt cọc *</label>
+        <select class="form-control"
+                [value]="bookingPaymentMethod()"
+                (change)="bookingPaymentMethod.set($any($event.target).value)">
+          <option value="VNPAY">VNPAY</option>
+          <option value="CASH">Tiền mặt / chuyển khoản trực tiếp</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-top:12px">
         <label class="form-label">Ghi chú</label>
         <textarea class="form-control"
                   rows="3"
@@ -557,7 +570,7 @@
       <div class="modal-actions">
         <button class="btn btn-ghost" (click)="showBookingModal.set(false)">Hủy</button>
         <button class="btn btn-primary" (click)="submitBooking()" [disabled]="bookingSending()">
-          @if (bookingSending()) { Đang tạo đơn... } @else { Tạo đơn thuê và thanh toán cọc }
+          @if (bookingSending()) { Đang tạo đơn... } @else { Gửi yêu cầu thuê phòng }
         </button>
       </div>
     </div>
