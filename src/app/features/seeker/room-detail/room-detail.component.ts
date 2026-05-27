@@ -524,12 +524,14 @@ export class RoomDetailComponent implements OnInit {
 
   deleteMyReview(): void {
     const r = this.myReview();
-    if (!r || !confirm('Xoá đánh giá này?')) return;
-    this.reviewService.deleteReview(r.id).subscribe(() => {
-      this.reviews.update(list => list.filter(rv => rv.id !== r.id));
-      this.myReview.set(null);
-      this.resetReviewForm();
-      this.toast.success('Đã xoá đánh giá');
+    if (!r) return;
+    this.toast.confirm('Xoá đánh giá này?', () => {
+      this.reviewService.deleteReview(r.id).subscribe(() => {
+        this.reviews.update(list => list.filter(rv => rv.id !== r.id));
+        this.myReview.set(null);
+        this.resetReviewForm();
+        this.toast.success('Đã xoá đánh giá');
+      });
     });
   }
 }

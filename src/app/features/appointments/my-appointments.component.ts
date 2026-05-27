@@ -43,16 +43,18 @@ export class MyAppointmentsComponent implements OnInit {
   }
 
   cancelAppointment(appointment: ViewingAppointment): void {
-    if (!this.canCancel(appointment) || !confirm('Huỷ lịch xem phòng này?')) return;
+    if (!this.canCancel(appointment)) return;
 
-    this.appointmentService.cancel(appointment.id).subscribe({
-      next: r => {
-        this.appointments.update(list => list.map(item => item.id === appointment.id ? r.data : item));
-        this.toast.success('Đã huỷ lịch xem phòng');
-      },
-      error: e => {
-        this.toast.error(e.error?.message ?? 'Không huỷ được lịch xem phòng');
-      }
+    this.toast.confirm('Huỷ lịch xem phòng này?', () => {
+      this.appointmentService.cancel(appointment.id).subscribe({
+        next: r => {
+          this.appointments.update(list => list.map(item => item.id === appointment.id ? r.data : item));
+          this.toast.success('Đã huỷ lịch xem phòng');
+        },
+        error: e => {
+          this.toast.error(e.error?.message ?? 'Không huỷ được lịch xem phòng');
+        }
+      });
     });
   }
 

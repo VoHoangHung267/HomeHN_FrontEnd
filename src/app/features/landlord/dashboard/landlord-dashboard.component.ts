@@ -1,9 +1,10 @@
-﻿import { Component, ChangeDetectionStrategy, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, signal, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { RoomService } from '../../../core/services/room.service';
 import { ViewingAppointmentService } from '../../../core/services/viewing-appointment.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { Room, STATUS_LABELS, RoomStatus, ViewingAppointment, ViewingAppointmentStatus } from '../../../core/models';
 
 @Component({
@@ -18,6 +19,7 @@ export class LandlordDashboardComponent implements OnInit {
   readonly auth = inject(AuthService);
   private readonly roomService = inject(RoomService);
   private readonly appointmentService = inject(ViewingAppointmentService);
+  private readonly toast = inject(ToastService);
 
   rooms = signal<Room[]>([]);
   appointments = signal<ViewingAppointment[]>([]);
@@ -51,30 +53,35 @@ export class LandlordDashboardComponent implements OnInit {
   }
 
   deleteRoom(room: Room): void {
-    if (!confirm(`Xác nhận xoá phòng "${room.title}"?`)) return;
-    this.roomService.deleteRoom(room.id).subscribe(() => {
-      this.rooms.update(list => list.filter(r => r.id !== room.id));
+    this.toast.confirm(`Xác nhận xoá phòng "${room.title}"?`, () => {
+      this.roomService.deleteRoom(room.id).subscribe(() => {
+        this.rooms.update(list => list.filter(r => r.id !== room.id));
+      });
     });
   }
 
   hideRoom(room: Room): void {
-    if (!confirm(`Ẩn tin phòng "${room.title}"?`)) return;
-    this.updateRoomStatus(room, 'HIDDEN');
+    this.toast.confirm(`Ẩn tin phòng "${room.title}"?`, () => {
+      this.updateRoomStatus(room, 'HIDDEN');
+    });
   }
 
   reactivateRoom(room: Room): void {
-    if (!confirm(`Hiện lại phòng "${room.title}"?`)) return;
-    this.updateRoomStatus(room, 'ACTIVE');
+    this.toast.confirm(`Hiện lại phòng "${room.title}"?`, () => {
+      this.updateRoomStatus(room, 'ACTIVE');
+    });
   }
 
   markRented(room: Room): void {
-    if (!confirm(`Đánh dấu phòng "${room.title}" đã cho thuê?`)) return;
-    this.updateRoomStatus(room, 'RENTED');
+    this.toast.confirm(`Đánh dấu phòng "${room.title}" đã cho thuê?`, () => {
+      this.updateRoomStatus(room, 'RENTED');
+    });
   }
 
   markAvailable(room: Room): void {
-    if (!confirm(`Đánh dấu phòng "${room.title}" còn trống?`)) return;
-    this.updateRoomStatus(room, 'ACTIVE');
+    this.toast.confirm(`Đánh dấu phòng "${room.title}" còn trống?`, () => {
+      this.updateRoomStatus(room, 'ACTIVE');
+    });
   }
 
   loadAppointments(): void {

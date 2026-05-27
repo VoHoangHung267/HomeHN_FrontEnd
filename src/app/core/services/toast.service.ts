@@ -2,10 +2,17 @@ import { Injectable, signal } from '@angular/core';
 
 export type ToastType = 'success' | 'error' | 'info';
 
+export interface ToastAction {
+  label: string;
+  kind?: 'primary' | 'ghost' | 'danger';
+  run: () => void;
+}
+
 export interface ToastItem {
   id: number;
   type: ToastType;
   message: string;
+  actions?: ToastAction[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -25,6 +32,36 @@ export class ToastService {
 
   info(message: string, durationMs = 3500): void {
     this.show('info', message, durationMs);
+  }
+
+  confirm(message: string, onConfirm: () => void, confirmLabel = 'Xác nhận', cancelLabel = 'Huỷ'): void {
+    const trimmed = message.trim();
+    if (!trimmed) return;
+
+    const id = this.nextId++;
+    this._items.update(items => [
+      ...items,
+      {
+        id,
+        type: 'info',
+        message: trimmed,
+        actions: [
+          {
+            label: confirmLabel,
+            kind: 'primary',
+            run: () => {
+              this.dismiss(id);
+              onConfirm();
+            }
+          },
+          {
+            label: cancelLabel,
+            kind: 'ghost',
+            run: () => this.dismiss(id)
+          }
+        ]
+      }
+    ]);
   }
 
   dismiss(id: number): void {

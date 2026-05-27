@@ -84,14 +84,16 @@ export class BookingDetailComponent implements OnInit {
 
   cancelBooking(): void {
     const booking = this.booking();
-    if (!booking || !confirm('Xác nhận huỷ đơn thuê phòng này?')) return;
+    if (!booking) return;
 
-    this.bookingService.cancel(booking.id).subscribe({
-      next: r => {
-        this.booking.set(r.data);
-        this.toast.success('Đã huỷ đơn thuê phòng');
-      },
-      error: e => this.toast.error(e.error?.message ?? 'Không thể huỷ đơn thuê')
+    this.toast.confirm('Xác nhận huỷ đơn thuê phòng này?', () => {
+      this.bookingService.cancel(booking.id).subscribe({
+        next: r => {
+          this.booking.set(r.data);
+          this.toast.success('Đã huỷ đơn thuê phòng');
+        },
+        error: e => this.toast.error(e.error?.message ?? 'Không thể huỷ đơn thuê')
+      });
     });
   }
 

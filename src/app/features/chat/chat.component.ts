@@ -239,16 +239,18 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   cancelAppointment(appointment: ViewingAppointment): void {
-    if (!this.canCancelAppointment(appointment) || !confirm('Huỷ lịch xem phòng này?')) return;
+    if (!this.canCancelAppointment(appointment)) return;
 
-    this.appointmentService.cancel(appointment.id).subscribe({
-      next: r => {
-        this.allAppointments.update(list => list.map(item => item.id === appointment.id ? r.data : item));
-        this.toast.success('Đã huỷ lịch xem phòng');
-      },
-      error: e => {
-        this.toast.error(e.error?.message ?? 'Không huỷ được lịch xem phòng');
-      }
+    this.toast.confirm('Huỷ lịch xem phòng này?', () => {
+      this.appointmentService.cancel(appointment.id).subscribe({
+        next: r => {
+          this.allAppointments.update(list => list.map(item => item.id === appointment.id ? r.data : item));
+          this.toast.success('Đã huỷ lịch xem phòng');
+        },
+        error: e => {
+          this.toast.error(e.error?.message ?? 'Không huỷ được lịch xem phòng');
+        }
+      });
     });
   }
 

@@ -108,10 +108,11 @@ export class AdminRoomManagementComponent implements OnInit {
   }
 
   deleteRoom(room: Room): void {
-    if (!confirm(`Xác nhận xoá phòng "${room.title}"?\nHành động này không thể hoàn tác.`)) return;
-    this.adminService.deleteRoom(room.id).subscribe(() => {
-      this.rooms.update(list => list.filter(r => r.id !== room.id));
-      this.totalRooms.update(n => n - 1);
+    this.toast.confirm(`Xác nhận xoá phòng "${room.title}"? Hành động này không thể hoàn tác.`, () => {
+      this.adminService.deleteRoom(room.id).subscribe(() => {
+        this.rooms.update(list => list.filter(r => r.id !== room.id));
+        this.totalRooms.update(n => n - 1);
+      });
     });
   }
 

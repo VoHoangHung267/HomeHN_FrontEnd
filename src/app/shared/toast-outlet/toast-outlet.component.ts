@@ -12,7 +12,21 @@ import { ToastService } from '../../core/services/toast.service';
       <div class="toast-icon">
         {{ toast.type === 'success' ? '✓' : toast.type === 'error' ? '!' : 'i' }}
       </div>
-      <div class="toast-message">{{ toast.message }}</div>
+      <div class="toast-body">
+        <div class="toast-message">{{ toast.message }}</div>
+        @if (toast.actions?.length) {
+          <div class="toast-actions">
+            @for (action of toast.actions; track action.label) {
+              <button
+                type="button"
+                class="toast-action toast-action-{{ action.kind || 'ghost' }}"
+                (click)="action.run()">
+                {{ action.label }}
+              </button>
+            }
+          </div>
+        }
+      </div>
       <button type="button" class="toast-close" (click)="toastService.dismiss(toast.id)">×</button>
     </div>
   }
@@ -30,7 +44,7 @@ import { ToastService } from '../../core/services/toast.service';
 .toast-stack {
   display: grid;
   gap: 12px;
-  width: min(380px, calc(100vw - 32px));
+  width: min(420px, calc(100vw - 32px));
 }
 
 .toast-item {
@@ -79,11 +93,48 @@ import { ToastService } from '../../core/services/toast.service';
   color: #1d4ed8;
 }
 
+.toast-body {
+  display: grid;
+  gap: 10px;
+}
+
 .toast-message {
   font-size: 14px;
   line-height: 1.5;
   color: #0f172a;
   overflow-wrap: anywhere;
+}
+
+.toast-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toast-action {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toast-action-primary {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #fff;
+}
+
+.toast-action-danger {
+  border-color: #dc2626;
+  background: #dc2626;
+  color: #fff;
+}
+
+.toast-action-ghost {
+  background: #fff;
+  color: #334155;
 }
 
 .toast-close {
