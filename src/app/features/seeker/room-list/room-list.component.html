@@ -207,6 +207,7 @@
               <button [class.active]="p === currentPage()" (click)="changePage(p)">{{ p + 1 }}</button>
             }
             <button (click)="changePage(currentPage() + 1)" [disabled]="currentPage() >= totalPages() - 1">›</button>
+            <span class="pagination-status">{{ paginationLabel() }}</span>
           </div>
         }
 

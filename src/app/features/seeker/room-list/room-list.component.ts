@@ -49,10 +49,11 @@ export class RoomListComponent implements OnInit {
 
   pageNumbers = computed(() => {
     const cur = this.currentPage();
-    const total = this.totalPages();
+    const total = this.resolvedTotalPages();
     const start = Math.max(0, cur - 2);
     const end = Math.min(total - 1, cur + 2);
-    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+    const length = Math.max(0, end - start + 1);
+    return Array.from({ length }, (_, i) => start + i);
   });
 
   activeFilters = computed(() => {
@@ -80,7 +81,7 @@ export class RoomListComponent implements OnInit {
       next: r => {
         this.rooms.set(r.data.content);
         this.totalElements.set(r.data.totalElements);
-        this.totalPages.set(r.data.totalPages);
+        this.totalPages.set(this.calculateTotalPages(r.data.totalPages, r.data.totalElements, r.data.size));
         this.loading.set(false);
       },
       error: () => this.loading.set(false)
@@ -130,10 +131,16 @@ export class RoomListComponent implements OnInit {
   }
 
   changePage(p: number): void {
-    if (p < 0 || p >= this.totalPages()) return;
+    if (p < 0 || p >= this.resolvedTotalPages()) return;
     this.currentPage.set(p);
     this.load();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  paginationLabel(): string {
+    const total = this.resolvedTotalPages();
+    if (total === 0) return 'Trang 0 / 0';
+    return `Trang ${this.currentPage() + 1} / ${total}`;
   }
 
   goToDetail(id: number): void {
@@ -204,5 +211,18 @@ export class RoomListComponent implements OnInit {
     if (!Number.isFinite(value)) return this.priceMinLimit;
     const clamped = Math.min(this.priceMaxLimit, Math.max(this.priceMinLimit, value));
     return Math.round(clamped / this.priceStep) * this.priceStep;
+  }
+
+  private resolvedTotalPages(): number {
+    return this.calculateTotalPages(this.totalPages(), this.totalElements(), this.filter.size);
+  }
+
+  private calculateTotalPages(totalPages: number | undefined, totalElements: number | undefined, pageSize: number | undefined): number {
+    if (Number.isFinite(totalPages) && Number(totalPages) > 0) {
+      return Number(totalPages);
+    }
+    const safeSize = Number(pageSize) || this.filter.size || 1;
+    const safeTotalElements = Number(totalElements) || 0;
+    return safeTotalElements > 0 ? Math.ceil(safeTotalElements / safeSize) : 0;
   }
 }

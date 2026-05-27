@@ -123,6 +123,11 @@ export class BookingDetailComponent implements OnInit {
   }
 
   statusLabel(status: RentalBookingStatus): string {
+    const booking = this.booking();
+    if (status === 'CANCELLED' && booking?.paymentResultCode === 15) {
+      return 'Đã hết hạn thanh toán';
+    }
+
     const map: Record<RentalBookingStatus, string> = {
       PENDING_PAYMENT: 'Chờ thanh toán cọc',
       DEPOSIT_PAID: 'Đã thanh toán cọc',
@@ -130,6 +135,16 @@ export class BookingDetailComponent implements OnInit {
       REJECTED: 'Đã bị từ chối',
       CANCELLED: 'Đã huỷ',
       PAYMENT_FAILED: 'Thanh toán lỗi'
+    };
+    return map[status];
+  }
+
+  paymentLabel(status: RentalBooking['paymentStatus']): string {
+    const map: Record<RentalBooking['paymentStatus'], string> = {
+      PENDING: 'Chờ thanh toán',
+      PAID: 'Đã thanh toán',
+      FAILED: 'Thất bại',
+      CANCELLED: 'Đã huỷ'
     };
     return map[status];
   }

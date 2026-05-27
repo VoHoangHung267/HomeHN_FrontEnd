@@ -82,7 +82,7 @@ export class AdminRoomManagementComponent implements OnInit {
       next: r => {
         this.rooms.set(r.data.content);
         this.totalRooms.set(r.data.totalElements);
-        this.totalPages.set(r.data.totalPages);
+        this.totalPages.set(this.calculateTotalPages(r.data.totalPages, r.data.totalElements, r.data.size));
         this.loadingRooms.set(false);
       },
       error: () => this.loadingRooms.set(false)
@@ -92,7 +92,7 @@ export class AdminRoomManagementComponent implements OnInit {
   applyFilter(): void { this.currentPage.set(0); this.loadRooms(); }
   resetFilter(): void { this.filter = { page: 0, size: 20 }; this.applyFilter(); }
   changePage(p: number): void {
-    if (p < 0 || p >= this.totalPages()) return;
+    if (p < 0 || p >= this.resolvedTotalPages()) return;
     this.currentPage.set(p);
     this.loadRooms();
   }
@@ -119,10 +119,17 @@ export class AdminRoomManagementComponent implements OnInit {
   typeLabel(t: string): string { return (ROOM_TYPE_LABELS as Record<string, string>)[t] ?? t; }
 
   pageNumbers(): number[] {
-    const cur = this.currentPage(), total = this.totalPages();
+    const cur = this.currentPage(), total = this.resolvedTotalPages();
     const start = Math.max(0, cur - 2);
     const end   = Math.min(total - 1, cur + 2);
-    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+    const length = Math.max(0, end - start + 1);
+    return Array.from({ length }, (_, i) => start + i);
+  }
+
+  paginationLabel(): string {
+    const total = this.resolvedTotalPages();
+    if (total === 0) return 'Trang 0 / 0';
+    return `Trang ${this.currentPage() + 1} / ${total}`;
   }
 
   // â”€â”€ Report methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -177,5 +184,18 @@ export class AdminRoomManagementComponent implements OnInit {
       document.getElementById(`report-${id}`)
         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
+  }
+
+  private resolvedTotalPages(): number {
+    return this.calculateTotalPages(this.totalPages(), this.totalRooms(), this.filter.size);
+  }
+
+  private calculateTotalPages(totalPages: number | undefined, totalElements: number | undefined, pageSize: number | undefined): number {
+    if (Number.isFinite(totalPages) && Number(totalPages) > 0) {
+      return Number(totalPages);
+    }
+    const safeSize = Number(pageSize) || this.filter.size || 1;
+    const safeTotalElements = Number(totalElements) || 0;
+    return safeTotalElements > 0 ? Math.ceil(safeTotalElements / safeSize) : 0;
   }
 }

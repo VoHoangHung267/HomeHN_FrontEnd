@@ -988,6 +988,13 @@ textarea.form-control {
   box-shadow: none;
 }
 
+.pagination-status {
+  color: var(--color-text-muted);
+  font-size: 0.94rem;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
 .empty-state,
 .no-reviews,
 .no-rooms {
