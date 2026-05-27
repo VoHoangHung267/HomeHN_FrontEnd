@@ -183,14 +183,41 @@
                   }
                   <span class="star-label">{{ starLabel() }}</span>
             </div>
+            <div class="sub-criteria">
+              @for (c of subCriteria; track c.key) {
+              <div class="criteria-row">
+                <span class="criteria-label">{{ c.label }}</span>
+                <div class="star-input sm">
+                  @for (s of [1,2,3,4,5]; track s) {
+                  <span class="star-btn sm" [class.active]="s <= getSubRating(c.key)" (click)="setSubRating(c.key, s)">
+                    {{ s <= getSubRating(c.key) ? '⭐' : '☆' }}
+                  </span>
+                  }
+                  @if (getSubRating(c.key) > 0) {
+                  <span class="clear-sub" (click)="setSubRating(c.key, 0)">✕</span>
+                  }
+                </div>
+              </div>
+              }
+            </div>
             <textarea class="form-control review-textarea" [(ngModel)]="reviewComment" [maxlength]="200" rows="3"
               placeholder="Chia sẻ trải nghiệm của bạn về phòng này...">
             </textarea>
             <div class="review-media-upload">
-              <label class="upload-label" for="review-media-input">Thêm ảnh/video</label>
-              <input id="review-media-input" type="file" accept="image/*,video/*" multiple
+              <input class="review-file-input" id="review-media-input" type="file" accept="image/*,video/*" multiple
                 (change)="onReviewMediaSelected($event)" />
-              <div class="upload-hint">Tối đa 6 tệp. H✕ trợ ảnh và video.</div>
+              <label class="upload-trigger" for="review-media-input">
+                <span class="upload-trigger-title">Thêm ảnh/video</span>
+                <span class="upload-trigger-btn">Chọn tệp</span>
+              </label>
+              <div class="upload-status">
+                @if (reviewMedia().length > 0) {
+                Đã chọn {{ reviewMedia().length }} tệp
+                } @else {
+                Chưa chọn tệp nào
+                }
+              </div>
+              <div class="upload-hint">Tối đa 6 tệp. Hỗ trợ ảnh và video.</div>
             </div>
             @if (reviewMedia().length > 0) {
             <div class="review-media-preview">
@@ -284,10 +311,20 @@
               placeholder="Chia sẻ trải nghiệm của bạn (tối đa 200 ký tự)...">
 </textarea>
             <div class="review-media-upload">
-              <label class="upload-label" for="review-media-edit-input">Thay ảnh/video</label>
-              <input id="review-media-edit-input" type="file" accept="image/*,video/*" multiple
+              <input class="review-file-input" id="review-media-edit-input" type="file" accept="image/*,video/*" multiple
                 (change)="onReviewMediaSelected($event)" />
-              <div class="upload-hint">Nếu chọn file mới, media cũ của đánh giá sẽ được thay thế.</div>
+              <label class="upload-trigger" for="review-media-edit-input">
+                <span class="upload-trigger-title">Thay ảnh/video</span>
+                <span class="upload-trigger-btn">Chọn tệp</span>
+              </label>
+              <div class="upload-status">
+                @if (reviewMedia().length > 0) {
+                Đã chọn {{ reviewMedia().length }} tệp mới
+                } @else {
+                Chưa chọn tệp mới
+                }
+              </div>
+              <div class="upload-hint">Nếu chọn tệp mới, media cũ của đánh giá sẽ được thay thế.</div>
             </div>
             @if (reviewMedia().length > 0) {
             <div class="review-media-preview">
