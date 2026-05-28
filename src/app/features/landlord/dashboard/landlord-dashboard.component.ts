@@ -1,12 +1,12 @@
-import { Component, ChangeDetectionStrategy, OnInit, signal, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { BookingService } from '../../../core/services/booking.service';
 import { RoomService } from '../../../core/services/room.service';
 import { ViewingAppointmentService } from '../../../core/services/viewing-appointment.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { Room, STATUS_LABELS, RoomStatus, ViewingAppointment, ViewingAppointmentStatus } from '../../../core/models';
+import { Room, RoomStatus, STATUS_LABELS, ViewingAppointment, ViewingAppointmentStatus } from '../../../core/models';
 
 @Component({
   selector: 'app-landlord-dashboard',
@@ -36,28 +36,39 @@ export class LandlordDashboardComponent implements OnInit {
   rescheduleSaving = signal(false);
   rescheduleError = signal('');
 
+  showReasonModal = signal(false);
+  reasonModalTitle = signal('');
+  reasonModalPlaceholder = signal('');
+  reasonModalValue = signal('');
+  reasonModalError = signal('');
+  reasonModalSaving = signal(false);
+  private reasonModalHandler: ((value: string) => void) | null = null;
+
   total = computed(() => this.rooms().length);
-  activeCount = computed(() => this.rooms().filter(r => r.status === 'ACTIVE').length);
-  pendingCount = computed(() => this.rooms().filter(r => r.status === 'PENDING').length);
-  totalViews = computed(() => this.rooms().reduce((s, r) => s + r.viewCount, 0));
+  activeCount = computed(() => this.rooms().filter(room => room.status === 'ACTIVE').length);
+  pendingCount = computed(() => this.rooms().filter(room => room.status === 'PENDING').length);
+  totalViews = computed(() => this.rooms().reduce((sum, room) => sum + room.viewCount, 0));
 
   ngOnInit(): void {
     this.loading.set(true);
     this.roomService.getMyRooms().subscribe({
-      next: r => { this.rooms.set(r.data); this.loading.set(false); },
+      next: response => {
+        this.rooms.set(response.data);
+        this.loading.set(false);
+      },
       error: () => this.loading.set(false)
     });
     this.loadAppointments();
   }
 
-  statusLabel(s: RoomStatus): string {
-    return STATUS_LABELS[s] ?? s;
+  statusLabel(status: RoomStatus): string {
+    return STATUS_LABELS[status] ?? status;
   }
 
   deleteRoom(room: Room): void {
     this.toast.confirm(`Xác nhận xoá phòng "${room.title}"?`, () => {
       this.roomService.deleteRoom(room.id).subscribe(() => {
-        this.rooms.update(list => list.filter(r => r.id !== room.id));
+        this.rooms.update(list => list.filter(item => item.id !== room.id));
       });
     });
   }
@@ -75,22 +86,24 @@ export class LandlordDashboardComponent implements OnInit {
   }
 
   terminateContractEarly(room: Room): void {
-    const reason = prompt(`Lý do yêu cầu kết thúc hợp đồng sớm cho phòng "${room.title}"?`)?.trim() ?? '';
-    if (!reason) {
-      this.toast.error('Vui lòng nhập lý do kết thúc hợp đồng sớm');
-      return;
-    }
-
-    this.toast.confirm(`Gửi yêu cầu kết thúc hợp đồng sớm cho phòng "${room.title}"?`, () => {
-      this.bookingService.terminateContractEarly(room.id, { note: reason }).subscribe({
-        next: () => {
-          this.toast.success('Đã gửi yêu cầu kết thúc hợp đồng sớm. Chờ admin duyệt.');
-        },
-        error: e => {
-          this.toast.error(e.error?.message ?? 'Không thể gửi yêu cầu kết thúc hợp đồng sớm');
-        }
-      });
-    });
+    this.openReasonModal(
+      'Lý do kết thúc hợp đồng sớm',
+      `Nhập lý do kết thúc hợp đồng sớm cho phòng "${room.title}"`,
+      reason => {
+        this.toast.confirm(`Gửi yêu cầu kết thúc hợp đồng sớm cho phòng "${room.title}"?`, () => {
+          this.bookingService.terminateContractEarly(room.id, { note: reason }).subscribe({
+            next: () => {
+              this.toast.success('Đã gửi yêu cầu kết thúc hợp đồng sớm. Chờ admin duyệt.');
+              this.closeReasonModal(true);
+            },
+            error: error => {
+              this.reasonModalSaving.set(false);
+              this.toast.error(error.error?.message ?? 'Không thể gửi yêu cầu kết thúc hợp đồng sớm');
+            }
+          });
+        }, 'Gửi yêu cầu', 'Huỷ');
+      }
+    );
   }
 
   markRented(room: Room): void {
@@ -108,7 +121,10 @@ export class LandlordDashboardComponent implements OnInit {
   loadAppointments(): void {
     this.loadingAppointments.set(true);
     this.appointmentService.getMyAppointments().subscribe({
-      next: r => { this.appointments.set(r.data); this.loadingAppointments.set(false); },
+      next: response => {
+        this.appointments.set(response.data);
+        this.loadingAppointments.set(false);
+      },
       error: () => this.loadingAppointments.set(false)
     });
   }
@@ -119,8 +135,8 @@ export class LandlordDashboardComponent implements OnInit {
     requestedAt?: string,
     note?: string
   ): void {
-    this.appointmentService.updateStatus(appointment.id, { status, requestedAt, note }).subscribe(r => {
-      this.appointments.update(list => list.map(x => x.id === appointment.id ? r.data : x));
+    this.appointmentService.updateStatus(appointment.id, { status, requestedAt, note }).subscribe(response => {
+      this.appointments.update(list => list.map(item => item.id === appointment.id ? response.data : item));
       if (status === 'COMPLETED') {
         this.rooms.update(list => list.map(room =>
           room.id === appointment.roomId ? { ...room, status: 'RENTED' as RoomStatus } : room
@@ -130,8 +146,14 @@ export class LandlordDashboardComponent implements OnInit {
   }
 
   rejectAppointment(appointment: ViewingAppointment): void {
-    const note = prompt('Lý do từ chối lịch xem phòng?') ?? '';
-    this.updateAppointment(appointment, 'REJECTED', undefined, note);
+    this.openReasonModal(
+      'Lý do từ chối lịch xem',
+      'Nhập lý do để người thuê biết vì sao lịch xem bị từ chối',
+      reason => {
+        this.updateAppointment(appointment, 'REJECTED', undefined, reason);
+        this.closeReasonModal(true);
+      }
+    );
   }
 
   rescheduleAppointment(appointment: ViewingAppointment): void {
@@ -150,6 +172,30 @@ export class LandlordDashboardComponent implements OnInit {
     this.rescheduleAt.set('');
     this.rescheduleNote.set('');
     this.rescheduleError.set('');
+  }
+
+  closeReasonModal(force = false): void {
+    if (!force && this.reasonModalSaving()) return;
+    this.showReasonModal.set(false);
+    this.reasonModalTitle.set('');
+    this.reasonModalPlaceholder.set('');
+    this.reasonModalValue.set('');
+    this.reasonModalError.set('');
+    this.reasonModalSaving.set(false);
+    this.reasonModalHandler = null;
+  }
+
+  submitReasonModal(): void {
+    const reason = this.reasonModalValue().trim();
+    if (!reason) {
+      this.reasonModalError.set('Vui lòng nhập nội dung');
+      return;
+    }
+    if (!this.reasonModalHandler) return;
+
+    this.reasonModalError.set('');
+    this.reasonModalSaving.set(true);
+    this.reasonModalHandler(reason);
   }
 
   submitReschedule(): void {
@@ -172,13 +218,13 @@ export class LandlordDashboardComponent implements OnInit {
       requestedAt,
       note: this.rescheduleNote().trim()
     }).subscribe({
-      next: r => {
-        this.appointments.update(list => list.map(x => x.id === appointment.id ? r.data : x));
+      next: response => {
+        this.appointments.update(list => list.map(item => item.id === appointment.id ? response.data : item));
         this.rescheduleSaving.set(false);
         this.closeRescheduleModal();
       },
-      error: e => {
-        this.rescheduleError.set(e.error?.data?.requestedAt ?? e.error?.message ?? 'Không thể đổi giờ hẹn');
+      error: error => {
+        this.rescheduleError.set(error.error?.data?.requestedAt ?? error.error?.message ?? 'Không thể đổi giờ hẹn');
         this.rescheduleSaving.set(false);
       }
     });
@@ -214,14 +260,24 @@ export class LandlordDashboardComponent implements OnInit {
 
   private updateRoomStatus(room: Room, status: RoomStatus): void {
     this.roomService.updateRoomStatus(room.id, status).subscribe({
-      next: r => {
-        this.rooms.update(list => list.map(item => item.id === room.id ? r.data : item));
+      next: response => {
+        this.rooms.update(list => list.map(item => item.id === room.id ? response.data : item));
         this.toast.success('Đã cập nhật trạng thái phòng');
       },
-      error: e => {
-        this.toast.error(e.error?.message ?? 'Không thể cập nhật trạng thái phòng');
+      error: error => {
+        this.toast.error(error.error?.message ?? 'Không thể cập nhật trạng thái phòng');
       }
     });
+  }
+
+  private openReasonModal(title: string, placeholder: string, handler: (value: string) => void): void {
+    this.reasonModalTitle.set(title);
+    this.reasonModalPlaceholder.set(placeholder);
+    this.reasonModalValue.set('');
+    this.reasonModalError.set('');
+    this.reasonModalSaving.set(false);
+    this.reasonModalHandler = handler;
+    this.showReasonModal.set(true);
   }
 
   private normalizeDateTimeLocal(value: string): string {
@@ -236,7 +292,7 @@ export class LandlordDashboardComponent implements OnInit {
   }
 
   private toDateTimeLocalValue(date: Date): string {
-    const pad = (n: number) => n.toString().padStart(2, '0');
+    const pad = (value: number) => value.toString().padStart(2, '0');
     return [
       date.getFullYear(),
       pad(date.getMonth() + 1),

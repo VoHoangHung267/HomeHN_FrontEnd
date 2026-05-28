@@ -213,3 +213,37 @@
     </div>
   </div>
 }
+
+@if (showReasonModal()) {
+  <div class="modal-overlay" (click)="closeReasonModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ reasonModalTitle() }}</h3>
+        <button class="modal-close" (click)="closeReasonModal()">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="reason-modal-input">{{ reasonModalPlaceholder() }}</label>
+        <textarea
+          id="reason-modal-input"
+          name="reasonModalInput"
+          class="form-control"
+          rows="4"
+          [value]="reasonModalValue()"
+          (input)="reasonModalValue.set($any($event.target).value)"
+          [placeholder]="reasonModalPlaceholder()"></textarea>
+      </div>
+
+      @if (reasonModalError()) {
+        <div class="form-error">{{ reasonModalError() }}</div>
+      }
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" (click)="closeReasonModal()" [disabled]="reasonModalSaving()">Huỷ</button>
+        <button class="btn btn-primary" (click)="submitReasonModal()" [disabled]="reasonModalSaving()">
+          @if (reasonModalSaving()) { Đang gửi... } @else { Xác nhận }
+        </button>
+      </div>
+    </div>
+  </div>
+}
