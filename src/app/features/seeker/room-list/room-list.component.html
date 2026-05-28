@@ -176,9 +176,6 @@
                     {{ room.favorited ? '❤️' : '🤍' }}
                   </button>
                   <span class="room-type-badge">{{ roomTypeLabel(room.roomType) }}</span>
-                  <span class="room-status-badge room-status-{{ room.status.toLowerCase() }}">
-                    {{ statusLabel(room.status) }}
-                  </span>
                 </div>
                 <div class="room-body">
                   <div class="room-price">{{ room.price | number:'1.0-0' }}đ<span>/tháng</span></div>

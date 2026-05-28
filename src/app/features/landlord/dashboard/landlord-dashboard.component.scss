@@ -67,7 +67,31 @@
   &.status-completed { background: #f1f5f9; color: #475569; }
 }
 
-.action-btns { display: flex; gap: 6px; }
+.action-btns {
+  display: flex;
+  gap: 6px;
+
+  .btn {
+    border-width: 1px;
+    border-style: solid;
+  }
+
+  .btn-ghost {
+    border-color: #cbd5e1;
+  }
+
+  .btn-outline {
+    border-color: #93c5fd;
+  }
+
+  .btn-primary {
+    border-color: #1d4ed8;
+  }
+
+  .btn-danger {
+    border-color: #e11d48;
+  }
+}
 
 .appointment-list { display: flex; flex-direction: column; }
 .appointment-item {
