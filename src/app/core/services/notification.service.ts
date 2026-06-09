@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiResponse, NotificationItem } from '../models';
 import { environment } from '../../../environments/environment';
 
@@ -12,7 +13,15 @@ export class NotificationService {
   readonly unreadCount = signal(0);
 
   getAll(): Observable<ApiResponse<NotificationItem[]>> {
-    return this.http.get<ApiResponse<NotificationItem[]>>(this.API);
+    return this.http.get<ApiResponse<Array<NotificationItem & { read?: boolean }>>>(this.API).pipe(
+      map(response => ({
+        ...response,
+        data: response.data.map(item => ({
+          ...item,
+          isRead: item.isRead ?? item.read ?? false
+        }))
+      }))
+    );
   }
 
   fetchUnreadCount(): void {
