@@ -166,19 +166,39 @@ export class AppComponent implements OnInit {
   }
 
   markAllRead(): void {
-    this.notifService.readAll().subscribe(() => {
-      this.notifications.update(list => list.map(item => ({ ...item, isRead: true })));
-      this.notifService.unreadCount.set(0);
+    this.notifService.readAll().subscribe({
+      next: () => {
+        this.notifications.update(list => list.map(item => ({ ...item, isRead: true })));
+        this.notifService.unreadCount.set(0);
+        this.loadNotifications();
+      },
+      error: e => {
+        this.toast.error(e.error?.message ?? 'Không thể cập nhật trạng thái thông báo');
+      }
     });
   }
 
   openNotif(item: NotificationItem): void {
     if (!item.isRead) {
-      this.notifService.readOne(item.id).subscribe();
-      this.notifications.update(list => list.map(x => x.id === item.id ? { ...x, isRead: true } : x));
-      this.notifService.unreadCount.update(count => Math.max(0, count - 1));
+      this.notifService.readOne(item.id).subscribe({
+        next: () => {
+          this.notifications.update(list => list.map(x => x.id === item.id ? { ...x, isRead: true } : x));
+          this.notifService.unreadCount.update(count => Math.max(0, count - 1));
+          this.navigateFromNotification(item);
+          this.loadNotifications();
+        },
+        error: e => {
+          this.toast.error(e.error?.message ?? 'Không thể cập nhật trạng thái thông báo');
+          this.navigateFromNotification(item);
+        }
+      });
+      return;
     }
 
+    this.navigateFromNotification(item);
+  }
+
+  private navigateFromNotification(item: NotificationItem): void {
     if (item.actionUrl) {
       this.router.navigateByUrl(item.actionUrl);
     } else if (
