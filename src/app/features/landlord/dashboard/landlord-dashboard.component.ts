@@ -135,12 +135,17 @@ export class LandlordDashboardComponent implements OnInit {
     requestedAt?: string,
     note?: string
   ): void {
-    this.appointmentService.updateStatus(appointment.id, { status, requestedAt, note }).subscribe(response => {
-      this.appointments.update(list => list.map(item => item.id === appointment.id ? response.data : item));
-      if (status === 'COMPLETED') {
-        this.rooms.update(list => list.map(room =>
-          room.id === appointment.roomId ? { ...room, status: 'RENTED' as RoomStatus } : room
-        ));
+    this.appointmentService.updateStatus(appointment.id, { status, requestedAt, note }).subscribe({
+      next: response => {
+        this.appointments.update(list => list.map(item => item.id === appointment.id ? response.data : item));
+        if (status === 'COMPLETED') {
+          this.rooms.update(list => list.map(room =>
+            room.id === appointment.roomId ? { ...room, status: 'RENTED' as RoomStatus } : room
+          ));
+        }
+      },
+      error: error => {
+        this.toast.error(error.error?.data?.requestedAt ?? error.error?.message ?? 'Không thể cập nhật lịch xem phòng');
       }
     });
   }

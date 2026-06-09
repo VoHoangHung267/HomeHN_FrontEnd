@@ -85,4 +85,45 @@ test.describe('Landlord flows', () => {
 
     await expect(page).toHaveURL(/\/landlord$/);
   });
+
+  test('xac nhan lich bi trung gio se hien toast loi', async ({ page }) => {
+    await page.route('**/api/api/rooms/my-rooms', route => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          message: 'OK',
+          data: [makeRoom(1, { status: 'ACTIVE' })],
+        }),
+      });
+    });
+    await page.route('**/api/api/appointments/my', route => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          message: 'OK',
+          data: [makeAppointment(1, { status: 'PENDING' })],
+        }),
+      });
+    });
+    await page.route('**/api/api/appointments/1/status', route => {
+      return route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: false,
+          message: 'Khung giờ này đã có lịch xem phòng được xác nhận. Vui lòng chọn giờ khác.',
+          data: null,
+        }),
+      });
+    });
+
+    await page.goto('/landlord');
+    await page.locator('.appointment-item .btn.btn-outline.btn-sm').click();
+
+    await expect(page.locator('.toast-item')).toContainText('Khung giờ này đã có lịch xem phòng được xác nhận');
+  });
 });
