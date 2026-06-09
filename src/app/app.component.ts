@@ -56,6 +56,7 @@ export class AppComponent implements OnInit {
   ]);
 
   private wasLoggedIn = false;
+  private readonly locallyReadNotificationIds = new Set<number>();
 
   constructor() {
     effect(() => {
@@ -71,6 +72,7 @@ export class AppComponent implements OnInit {
         this.wasLoggedIn = false;
         this.notifications.set([]);
         this.notifService.unreadCount.set(0);
+        this.locallyReadNotificationIds.clear();
       }
     });
   }
@@ -168,7 +170,10 @@ export class AppComponent implements OnInit {
   markAllRead(): void {
     this.notifService.readAll().subscribe({
       next: () => {
-        this.notifications.update(list => list.map(item => ({ ...item, isRead: true })));
+        this.notifications.update(list => {
+          list.forEach(item => this.locallyReadNotificationIds.add(item.id));
+          return list.map(item => ({ ...item, isRead: true }));
+        });
         this.notifService.unreadCount.set(0);
         this.loadNotifications();
       },
@@ -182,6 +187,7 @@ export class AppComponent implements OnInit {
     if (!item.isRead) {
       this.notifService.readOne(item.id).subscribe({
         next: () => {
+          this.locallyReadNotificationIds.add(item.id);
           this.notifications.update(list => list.map(x => x.id === item.id ? { ...x, isRead: true } : x));
           this.notifService.unreadCount.update(count => Math.max(0, count - 1));
           this.navigateFromNotification(item);
@@ -266,7 +272,14 @@ export class AppComponent implements OnInit {
 
   private loadNotifications(): void {
     this.notifService.fetchUnreadCount();
-    this.notifService.getAll().subscribe(response => this.notifications.set(response.data));
+    this.notifService.getAll().subscribe(response => {
+      this.notifications.set(
+        response.data.map(item => ({
+          ...item,
+          isRead: item.isRead || this.locallyReadNotificationIds.has(item.id)
+        }))
+      );
+    });
   }
 
   private mapAssistantResponse(data: GlobalAssistantResult, rooms: Room[], roomNote?: string): AssistantMessage {
