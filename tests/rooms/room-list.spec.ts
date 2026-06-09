@@ -33,6 +33,42 @@ test.describe('Room list', () => {
     await expect(page.locator('.room-title').first()).toContainText('Studio gan truong');
   });
 
+  test('chi hien dung so phong cua tung trang khi API tra ve full list', async ({ page }) => {
+    const rooms = Array.from({ length: 15 }, (_, index) =>
+      makeRoom(index + 1, { title: `Phong ${index + 1}` })
+    );
+
+    await page.route(/.*\/api\/api\/rooms(\?.*)?$/, async route => {
+      const url = new URL(route.request().url());
+      const pageIndex = Number(url.searchParams.get('page') ?? '0');
+      const size = Number(url.searchParams.get('size') ?? '12');
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          message: 'OK',
+          data: {
+            content: rooms,
+            totalElements: rooms.length,
+            totalPages: Math.ceil(rooms.length / size),
+            number: pageIndex,
+            size,
+          },
+        }),
+      });
+    });
+
+    await page.goto('/rooms');
+    await expect(page.locator('.room-card')).toHaveCount(12);
+    await expect(page.locator('.room-title').first()).toContainText('Phong 1');
+
+    await page.locator('.pagination button').nth(2).click();
+    await expect(page.locator('.room-card')).toHaveCount(3);
+    await expect(page.locator('.room-title').first()).toContainText('Phong 13');
+  });
+
   test('loc theo tu khoa o thanh tim kiem', async ({ page }) => {
     const rooms = [makeRoom(10, { title: 'Studio Cau Giay cho sinh vien', district: 'Cau Giay' })];
 

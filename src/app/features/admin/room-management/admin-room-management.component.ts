@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { AdminRoomFilter, AdminReviewItem, AdminService, ReportItem } from '../../../core/services/admin.service';
-import { DISTRICTS_HN, ROOM_TYPE_LABELS, Room, RoomStatus, STATUS_LABELS } from '../../../core/models';
+import { DISTRICTS_HN, Page, ROOM_TYPE_LABELS, Room, RoomStatus, STATUS_LABELS } from '../../../core/models';
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
@@ -79,9 +79,11 @@ export class AdminRoomManagementComponent implements OnInit {
     this.loadingRooms.set(true);
     this.adminService.getAllRooms({ ...this.filter, page: this.currentPage() }).subscribe({
       next: r => {
-        this.rooms.set(r.data.content);
-        this.totalRooms.set(r.data.totalElements);
-        this.totalPages.set(this.calculateTotalPages(r.data.totalPages, r.data.totalElements, r.data.size));
+        const pageData = this.normalizePageData(r.data);
+        this.rooms.set(pageData.content);
+        this.totalRooms.set(pageData.totalElements);
+        this.totalPages.set(pageData.totalPages);
+        this.currentPage.set(pageData.number);
         this.loadingRooms.set(false);
       },
       error: () => this.loadingRooms.set(false)
@@ -225,6 +227,23 @@ export class AdminRoomManagementComponent implements OnInit {
 
   private resolvedTotalPages(): number {
     return this.calculateTotalPages(this.totalPages(), this.totalRooms(), this.filter.size);
+  }
+
+  private normalizePageData(page: Page<Room> & { page?: Partial<Page<Room>> }): Page<Room> {
+    const metadata = page.page ?? page;
+    const size = Number(metadata.size) || this.filter.size || 20;
+    const number = Number.isFinite(Number(metadata.number)) ? Number(metadata.number) : this.currentPage();
+    const content = Array.isArray(page.content) ? page.content : [];
+    const totalElements = Number(metadata.totalElements);
+    const normalizedTotalElements = totalElements > 0 ? totalElements : content.length;
+
+    return {
+      content: content.length > size ? content.slice(number * size, (number + 1) * size) : content,
+      totalElements: normalizedTotalElements,
+      totalPages: this.calculateTotalPages(Number(metadata.totalPages), normalizedTotalElements, size),
+      number,
+      size
+    };
   }
 
   private calculateTotalPages(totalPages: number | undefined, totalElements: number | undefined, pageSize: number | undefined): number {

@@ -9,6 +9,7 @@ import {
   DISTRICTS_HN,
   GENDER_LABELS,
   GenderRequirement,
+  Page,
   Room,
   RoomFilter,
   ROOM_TYPE_LABELS,
@@ -80,9 +81,11 @@ export class RoomListComponent implements OnInit {
     this.loading.set(true);
     this.roomService.searchRooms({ ...this.filter, page: this.currentPage() }).subscribe({
       next: r => {
-        this.rooms.set(r.data.content);
-        this.totalElements.set(r.data.totalElements);
-        this.totalPages.set(this.calculateTotalPages(r.data.totalPages, r.data.totalElements, r.data.size));
+        const pageData = this.normalizePageData(r.data);
+        this.rooms.set(pageData.content);
+        this.totalElements.set(pageData.totalElements);
+        this.totalPages.set(pageData.totalPages);
+        this.currentPage.set(pageData.number);
         this.loading.set(false);
       },
       error: () => this.loading.set(false)
@@ -220,6 +223,23 @@ export class RoomListComponent implements OnInit {
 
   private resolvedTotalPages(): number {
     return this.calculateTotalPages(this.totalPages(), this.totalElements(), this.filter.size);
+  }
+
+  private normalizePageData(page: Page<Room> & { page?: Partial<Page<Room>> }): Page<Room> {
+    const metadata = page.page ?? page;
+    const size = Number(metadata.size) || this.filter.size || 12;
+    const number = Number.isFinite(Number(metadata.number)) ? Number(metadata.number) : this.currentPage();
+    const content = Array.isArray(page.content) ? page.content : [];
+    const totalElements = Number(metadata.totalElements);
+    const normalizedTotalElements = totalElements > 0 ? totalElements : content.length;
+
+    return {
+      content: content.length > size ? content.slice(number * size, (number + 1) * size) : content,
+      totalElements: normalizedTotalElements,
+      totalPages: this.calculateTotalPages(Number(metadata.totalPages), normalizedTotalElements, size),
+      number,
+      size
+    };
   }
 
   private calculateTotalPages(totalPages: number | undefined, totalElements: number | undefined, pageSize: number | undefined): number {

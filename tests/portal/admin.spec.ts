@@ -121,4 +121,54 @@ test.describe('Admin flows', () => {
     await page.locator('.toast-action-primary').click();
     await expect(page.locator('.report-card')).toHaveCount(0);
   });
+
+  test('admin room management chi hien dung so phong moi trang khi API tra full list', async ({ page }) => {
+    const rooms = Array.from({ length: 25 }, (_, index) =>
+      makeRoom(index + 1, { title: `Phong admin ${index + 1}` })
+    );
+
+    await page.route(/.*\/api\/api\/admin\/rooms\/all(\?.*)?$/, async route => {
+      const url = new URL(route.request().url());
+      const pageIndex = Number(url.searchParams.get('page') ?? '0');
+      const size = Number(url.searchParams.get('size') ?? '20');
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          message: 'OK',
+          data: {
+            content: rooms,
+            totalElements: rooms.length,
+            totalPages: Math.ceil(rooms.length / size),
+            number: pageIndex,
+            size,
+          },
+        }),
+      });
+    });
+    await page.route('**/api/api/admin/reports?status=PENDING', route => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, message: 'OK', data: [] }),
+      });
+    });
+    await page.route('**/api/api/admin/reviews', route => {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, message: 'OK', data: [] }),
+      });
+    });
+
+    await page.goto('/admin/room-management');
+    await expect(page.locator('tbody tr')).toHaveCount(20);
+    await expect(page.locator('tbody tr').first()).toContainText('Phong admin 1');
+
+    await page.locator('.pagination button').nth(2).click();
+    await expect(page.locator('tbody tr')).toHaveCount(5);
+    await expect(page.locator('tbody tr').first()).toContainText('Phong admin 21');
+  });
 });
