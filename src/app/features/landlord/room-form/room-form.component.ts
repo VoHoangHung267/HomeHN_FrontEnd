@@ -381,6 +381,11 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onSubmit(): void {
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLButtonElement && activeElement.classList.contains('remove-img')) {
+      return;
+    }
+
     const validationError = this.validateForm();
     if (validationError) {
       this.toast.error(validationError);
