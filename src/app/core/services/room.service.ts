@@ -136,9 +136,18 @@ export class RoomService {
     return this.http.delete<ApiResponse<void>>(`${this.API}/${id}`);
   }
 
-  uploadImages(roomId: number, files: File[]): Observable<ApiResponse<void>> {
+  uploadImages(
+    roomId: number,
+    files: File[],
+    retainedImageUrls: string[] = [],
+    syncExistingImages = false
+  ): Observable<ApiResponse<void>> {
     const form = new FormData();
     files.forEach(f => form.append('files', f));
+    retainedImageUrls.forEach(url => form.append('retainedImageUrls', url));
+    if (syncExistingImages) {
+      form.append('syncExistingImages', 'true');
+    }
     return this.http.post<ApiResponse<void>>(`${this.API}/${roomId}/images`, form);
   }
 

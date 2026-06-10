@@ -224,9 +224,9 @@
 
           @if (previewImages().length > 0) {
             <div class="preview-grid">
-              @for (img of previewImages(); track img; let i = $index) {
+              @for (img of previewImages(); track img.url + '-' + img.kind + '-' + $index; let i = $index) {
                 <div class="preview-item">
-                  <img [src]="img" />
+                  <img [src]="img.url" />
                   <button class="remove-img" (click)="removeImage(i)">✕</button>
                   @if (i === 0) { <span class="primary-badge">Ảnh chính</span> }
                 </div>

@@ -17,6 +17,12 @@ import {
 
 declare const L: any;
 
+type RoomImagePreview = {
+  kind: 'existing' | 'new';
+  url: string;
+  file?: File;
+};
+
 @Component({
   selector: 'app-room-form',
   standalone: true,
@@ -79,8 +85,7 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
     amenities: []
   };
 
-  selectedFiles = signal<File[]>([]);
-  previewImages = signal<string[]>([]);
+  previewImages = signal<RoomImagePreview[]>([]);
 
   readonly roomTypes = ROOM_TYPE_LABELS;
   readonly districts = DISTRICTS_HN;
@@ -147,6 +152,10 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
           genderRequirement: room.genderRequirement,
           amenities: [...room.amenities]
         };
+        this.previewImages.set((room.imageUrls ?? []).map(url => ({
+          kind: 'existing',
+          url
+        })));
         this.searchQuery.set(room.address);
         if (room.latitude && room.longitude) {
           this.updateCoordDisplay(room.latitude, room.longitude);
@@ -307,19 +316,21 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private addFiles(files: File[]): void {
-    const remaining = 10 - this.selectedFiles().length;
+    const remaining = 10 - this.previewImages().length;
     files.slice(0, remaining).forEach(file => {
-      this.selectedFiles.update(list => [...list, file]);
       const reader = new FileReader();
       reader.onload = e => {
-        this.previewImages.update(list => [...list, e.target!.result as string]);
+        this.previewImages.update(list => [...list, {
+          kind: 'new',
+          url: e.target!.result as string,
+          file
+        }]);
       };
       reader.readAsDataURL(file);
     });
   }
 
   removeImage(i: number): void {
-    this.selectedFiles.update(list => list.filter((_, idx) => idx !== i));
     this.previewImages.update(list => list.filter((_, idx) => idx !== i));
   }
 
@@ -384,9 +395,19 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
     req$.subscribe({
       next: r => {
         const id = r.data.id;
-        const files = this.selectedFiles();
-        if (files.length > 0) {
-          this.roomService.uploadImages(id, files).subscribe({
+        const images = this.previewImages();
+        const files = images
+          .filter((image): image is RoomImagePreview & { file: File } => image.kind === 'new' && !!image.file)
+          .map(image => image.file);
+        const retainedImageUrls = images
+          .filter(image => image.kind === 'existing')
+          .map(image => image.url);
+        const shouldSyncImages = !this.isEditMode
+          ? files.length > 0
+          : files.length > 0 || retainedImageUrls.length !== (r.data.imageUrls?.length ?? 0);
+
+        if (shouldSyncImages) {
+          this.roomService.uploadImages(id, files, retainedImageUrls, this.isEditMode).subscribe({
             next: () => this.finish(),
             error: () => this.finish()
           });
