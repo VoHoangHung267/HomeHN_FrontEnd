@@ -1,63 +1,63 @@
 # Playwright E2E
 
-Bo test nay duoc tao de bat dau E2E cho frontend Angular.
+Bộ test này được tạo để bắt đầu E2E cho frontend Angular.
 
-## Cai dat
+## Cài đặt
 
 ```powershell
 npm install
 npx playwright install
 ```
 
-## Chay test
+## Chạy test
 
 ```powershell
 npm run e2e
 npm run e2e:ui
 ```
 
-## Pham vi hien tai
+## Phạm vi hiện tại
 
-- Danh sach phong: render, tim kiem, AI search, yeu thich
-- Chi tiet phong: gallery, goi y, bao cao, dat lich xem, gui yeu cau thue, danh gia
-- Ho so ca nhan: load profile, cap nhat thong tin, doi mat khau, thong ke
-- Route guard co ban cho login/profile
+- Danh sách phòng: render, tìm kiếm, AI search, yêu thích
+- Chi tiết phòng: gallery, gợi ý, báo cáo, đặt lịch xem, gửi yêu cầu thuê, đánh giá
+- Hồ sơ cá nhân: load profile, cập nhật thông tin, đổi mật khẩu, thống kê
+- Route guard cơ bản cho login/profile
 - Auth: login, register, forgot password, reset password
 - User portal: favorites, bookings, appointments, chat
 - Landlord: dashboard, room form
 - Admin: dashboard, room management
 - Utility pages: map, report detail
 
-## Ma tran coverage theo route
+## Ma trận coverage theo route
 
-- `/auth/login`: co test
-- `/auth/register`: co test
-- `/auth/forgot-password`: co test
-- `/auth/reset-password`: co test
-- `/rooms`: co test
-- `/rooms/favorites`: co test
-- `/rooms/:id`: co test
-- `/bookings`: co test
-- `/bookings/:id`: co test gian tiep qua flow tao booking
-- `/appointments`: co test
-- `/chat`: co test
-- `/profile`: co test
-- `/map`: co test
-- `/landlord`: co test
-- `/landlord/rooms/new`: co test
-- `/landlord/rooms/:id/edit`: chua co case rieng
-- `/admin`: co test
-- `/admin/room-management`: co test
-- `/reports/:id`: co test
+- `/auth/login`: có test
+- `/auth/register`: có test
+- `/auth/forgot-password`: có test
+- `/auth/reset-password`: có test
+- `/rooms`: có test
+- `/rooms/favorites`: có test
+- `/rooms/:id`: có test
+- `/bookings`: có test
+- `/bookings/:id`: có test gián tiếp qua flow tạo booking
+- `/appointments`: có test
+- `/chat`: có test
+- `/profile`: có test
+- `/map`: có test
+- `/landlord`: có test
+- `/landlord/rooms/new`: có test
+- `/landlord/rooms/:id/edit`: chưa có case riêng
+- `/admin`: có test
+- `/admin/room-management`: có test
+- `/reports/:id`: có test
 
-## Rui ro con lai
+## Rủi ro còn lại
 
-- Chua phu het moi nhanh nghiep vu ben trong `booking-detail`
-- Chua phu rieng flow edit room cua landlord
-- Chua phu cac nhanh loi chi tiet cho admin/landlord/chat
-- Chua verify tich hop backend that, hien tai dang mock API
+- Chưa phủ hết mọi nhánh nghiệp vụ bên trong `booking-detail`
+- Chưa phủ riêng flow edit room của landlord
+- Chưa phủ các nhánh lỗi chi tiết cho admin/landlord/chat
+- Chưa verify tích hợp backend thật, hiện tại đang mock API
 
-## Luu y
+## Lưu ý
 
-- Hien co mot so file giao dien dang loi encoding tieng Viet, vi vay test mau uu tien selector theo `name`, `type`, URL.
-- Khi on dinh giao dien, nen bo sung `data-testid` cho cac form va nut quan trong de test ben vung hon.
+- Hiện có một số file giao diện đang lỗi encoding tiếng Việt, vì vậy test mẫu ưu tiên selector theo `name`, `type`, URL.
+- Khi ổn định giao diện, nên bổ sung `data-testid` cho các form và nút quan trọng để test bền vững hơn.

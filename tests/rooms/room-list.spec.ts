@@ -10,8 +10,8 @@ test.describe('Room list', () => {
 
   test('hien thi danh sach phong va redirect tu root', async ({ page }) => {
     const rooms = [
-      makeRoom(1, { title: 'Studio gan truong', ward: 'Nghĩa Đô' }),
-      makeRoom(2, { title: 'Phong tro gia tot', ward: 'Kim Liên' }),
+      makeRoom(1, { title: 'Studio gần trường', ward: 'Nghĩa Đô' }),
+      makeRoom(2, { title: 'Phòng trọ giá tốt', ward: 'Kim Liên' }),
     ];
 
     await page.route(/.*\/api\/api\/rooms(\?.*)?$/, route => {
@@ -30,7 +30,7 @@ test.describe('Room list', () => {
 
     await expect(page).toHaveURL(/\/rooms$/);
     await expect(page.locator('.room-card')).toHaveCount(2);
-    await expect(page.locator('.room-title').first()).toContainText('Studio gan truong');
+    await expect(page.locator('.room-title').first()).toContainText('Studio gần trường');
   });
 
   test('chi hien dung so phong cua tung trang khi API tra ve full list', async ({ page }) => {
@@ -70,12 +70,12 @@ test.describe('Room list', () => {
   });
 
   test('loc theo tu khoa o thanh tim kiem', async ({ page }) => {
-    const rooms = [makeRoom(10, { title: 'Studio Nghia Do cho sinh vien', ward: 'Nghĩa Đô' })];
+    const rooms = [makeRoom(10, { title: 'Studio Nghĩa Đô cho sinh viên', ward: 'Nghĩa Đô' })];
 
     await page.route(/.*\/api\/api\/rooms(\?.*)?$/, async route => {
       const url = new URL(route.request().url());
       const keyword = url.searchParams.get('keyword');
-      const data = keyword === 'studio cau giay' ? makeRoomsPage(rooms) : makeRoomsPage([]);
+      const data = keyword === 'studio nghĩa đô' ? makeRoomsPage(rooms) : makeRoomsPage([]);
 
       await route.fulfill({
         status: 200,
@@ -85,15 +85,15 @@ test.describe('Room list', () => {
     });
 
     await page.goto('/rooms');
-    await page.locator('.search-input').fill('studio cau giay');
+    await page.locator('.search-input').fill('studio nghĩa đô');
     await page.locator('.hero .btn.btn-primary').click();
 
     await expect(page.locator('.room-card')).toHaveCount(1);
-    await expect(page.locator('.room-title').first()).toContainText('Studio Cau Giay');
+    await expect(page.locator('.room-title').first()).toContainText('Studio Nghĩa Đô');
   });
 
   test('AI search ap dung bo loc va hien ket qua phu hop', async ({ page }) => {
-    const rooms = [makeRoom(20, { title: 'Studio full noi that', ward: 'Nghĩa Đô', price: 3900000 })];
+    const rooms = [makeRoom(20, { title: 'Studio full nội thất', ward: 'Nghĩa Đô', price: 3900000 })];
 
     await page.route('**/api/api/rooms/ai/parse-search', route => {
       return route.fulfill({
@@ -108,7 +108,7 @@ test.describe('Room list', () => {
             roomType: 'STUDIO',
             isFurnished: true,
             sortBy: 'createdAt',
-            note: 'Da ap dung bo loc AI',
+            note: 'Đã áp dụng bộ lọc AI',
           },
         }),
       });
@@ -134,11 +134,11 @@ test.describe('Room list', () => {
     });
 
     await page.goto('/rooms');
-    await page.locator('.ai-search-input').fill('Can phong duoi 4 trieu o Cau Giay, co noi that');
+    await page.locator('.ai-search-input').fill('Cần phòng dưới 4 triệu ở Nghĩa Đô, có nội thất');
     await page.locator('.ai-search-actions .btn.btn-primary').click();
 
     await expect(page.locator('.room-card')).toHaveCount(1);
-    await expect(page.locator('.room-title').first()).toContainText('Studio full noi that');
+    await expect(page.locator('.room-title').first()).toContainText('Studio full nội thất');
   });
 
   test('yeu thich khi chua dang nhap se chuyen sang trang login', async ({ page }) => {
