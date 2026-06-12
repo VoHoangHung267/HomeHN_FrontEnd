@@ -11,12 +11,12 @@ test.describe('Map and report pages', () => {
   test('map page render room list va filter', async ({ page }) => {
     await page.route(/.*\/api\/api\/rooms(\?.*)?$/, route => {
       const url = new URL(route.request().url());
-      const district = url.searchParams.get('district');
-      const data = district
-        ? makeRoomsPage([makeRoom(2, { district, latitude: 21.03, longitude: 105.8 })])
+      const ward = url.searchParams.get('ward');
+      const data = ward
+        ? makeRoomsPage([makeRoom(2, { ward, latitude: 21.03, longitude: 105.8 })])
         : makeRoomsPage([
-            makeRoom(1, { district: 'Cau Giay', latitude: 21.028, longitude: 105.804 }),
-            makeRoom(2, { district: 'Dong Da', latitude: 21.03, longitude: 105.8 }),
+            makeRoom(1, { ward: 'Nghĩa Đô', latitude: 21.028, longitude: 105.804 }),
+            makeRoom(2, { ward: 'Kim Liên', latitude: 21.03, longitude: 105.8 }),
           ]);
 
       return route.fulfill({

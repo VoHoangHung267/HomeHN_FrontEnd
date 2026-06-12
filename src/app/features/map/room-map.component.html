@@ -13,10 +13,10 @@
 
     <!-- Filters -->
     <div class="filter-section">
-      <select class="form-control" [(ngModel)]="filterDistrict">
+      <select class="form-control" [(ngModel)]="filterWard">
         <option value="">Tất cả phường/xã</option>
-        @for (d of districts; track d) {
-          <option [value]="d">{{ d }}</option>
+        @for (w of wards; track w) {
+          <option [value]="w">{{ w }}</option>
         }
       </select>
       <select class="form-control" [(ngModel)]="filterType">
@@ -54,7 +54,7 @@
           <div class="room-item-body">
             <div class="room-item-price">{{ room.price | number:'1.0-0' }}đ</div>
             <div class="room-item-title">{{ room.title }}</div>
-            <div class="room-item-loc">📍 {{ room.district }} · {{ room.area }}m²</div>
+            <div class="room-item-loc">📍 {{ room.ward }} · {{ room.area }}m²</div>
           </div>
           <button class="btn-detail" (click)="$event.stopPropagation(); goToRoom(room.id)">
             →

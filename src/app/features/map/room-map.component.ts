@@ -13,7 +13,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RoomService } from '../../core/services/room.service';
-import { DISTRICTS_HN, Room, ROOM_TYPE_LABELS, RoomType } from '../../core/models';
+import { Room, ROOM_TYPE_LABELS, RoomType, WARDS_HN } from '../../core/models';
 
 declare const L: any;
 
@@ -41,12 +41,12 @@ export class RoomMapComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedRoom = signal<Room | null>(null);
   totalCount = signal(0);
 
-  filterDistrict = '';
+  filterWard = '';
   filterMinPrice = '';
   filterMaxPrice = '';
   filterType = '';
 
-  readonly districts = DISTRICTS_HN;
+  readonly wards = WARDS_HN;
   readonly roomTypes = Object.entries(ROOM_TYPE_LABELS);
 
   ngOnInit(): void {
@@ -94,7 +94,7 @@ export class RoomMapComponent implements OnInit, AfterViewInit, OnDestroy {
   loadRooms(): void {
     this.loading.set(true);
     const filter: Record<string, string | number> = { page: 0, size: 500 };
-    if (this.filterDistrict) filter['district'] = this.filterDistrict;
+    if (this.filterWard) filter['ward'] = this.filterWard;
     if (this.filterMinPrice) filter['minPrice'] = this.filterMinPrice;
     if (this.filterMaxPrice) filter['maxPrice'] = this.filterMaxPrice;
     if (this.filterType) filter['roomType'] = this.filterType;
@@ -118,7 +118,7 @@ export class RoomMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   resetFilter(): void {
-    this.filterDistrict = '';
+    this.filterWard = '';
     this.filterMinPrice = '';
     this.filterMaxPrice = '';
     this.filterType = '';
@@ -188,7 +188,7 @@ export class RoomMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private buildPopupHtml(room: Room): string {
     const imageUrl = room.primaryImageUrl || 'assets/room-placeholder.jpg';
-    const location = this.escapeHtml(`${room.district}, ${room.city}`);
+    const location = this.escapeHtml(`${room.ward}, ${room.city}`);
     const title = this.escapeHtml(room.title);
     const price = `${room.price.toLocaleString('vi-VN')}đ/tháng`;
     const meta = `${room.area}m² · ${room.maxPeople} người`;

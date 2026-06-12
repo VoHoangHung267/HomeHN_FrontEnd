@@ -330,6 +330,8 @@ export class AppComponent implements OnInit {
       'phòng nào',
       'gợi ý phòng',
       'phù hợp với tôi',
+      'phường',
+      'xã',
       'quận',
       'giá',
       'studio',
@@ -360,10 +362,10 @@ export class AppComponent implements OnInit {
 
   private hasSearchIntent(question: string, parsed: AiSearchResult | null): boolean {
     const q = question.toLowerCase();
-    const searchKeywords = ['tìm phòng', 'cần phòng', 'muốn thuê', 'phòng nào', 'gợi ý phòng', 'phù hợp với tôi', 'dưới', 'quận', 'giá', 'studio'];
+    const searchKeywords = ['tìm phòng', 'cần phòng', 'muốn thuê', 'phòng nào', 'gợi ý phòng', 'phù hợp với tôi', 'dưới', 'quận', 'phường', 'xã', 'giá', 'studio'];
     const hinted = searchKeywords.some(keyword => q.includes(keyword));
     const hasParsedSignal = !!(
-      parsed?.district ||
+      parsed?.ward ||
       parsed?.keyword ||
       parsed?.minPrice ||
       parsed?.maxPrice ||
@@ -380,7 +382,7 @@ export class AppComponent implements OnInit {
   private normalizeSearchFilter(parsed: AiSearchResult) {
     return {
       keyword: parsed.keyword?.trim() || undefined,
-      district: parsed.district?.trim() || undefined,
+      ward: parsed.ward?.trim() || undefined,
       minPrice: parsed.minPrice ?? undefined,
       maxPrice: parsed.maxPrice ?? undefined,
       minArea: parsed.minArea ?? undefined,

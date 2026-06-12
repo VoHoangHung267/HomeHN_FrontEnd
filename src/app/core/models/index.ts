@@ -56,7 +56,6 @@ export interface Room {
   otherFees: number;
   address: string;
   ward: string;
-  district: string;
   city: string;
   latitude: number;
   longitude: number;
@@ -78,7 +77,7 @@ export interface Room {
 
 export interface RoomFilter {
   keyword?: string;
-  district?: string;
+  ward?: string;
   minPrice?: number;
   maxPrice?: number;
   minArea?: number;
@@ -126,7 +125,6 @@ export interface RoomFormData {
   otherFees: number;
   address: string;
   ward: string;
-  district: string;
   city: string;
   latitude?: number;
   longitude?: number;
@@ -316,7 +314,7 @@ export const STATUS_LABELS: Record<RoomStatus, string> = {
   HIDDEN_REVIEW: 'Tạm ẩn chờ xử lý'
 };
 
-export const DISTRICTS_HN = [
+export const WARDS_HN = [
   'Hoàn Kiếm', 'Cửa Nam', 'Ba Đình', 'Ngọc Hà', 'Giảng Võ',
   'Hai Bà Trưng', 'Vĩnh Tuy', 'Bạch Mai', 'Đống Đa', 'Kim Liên',
   'Văn Miếu - Quốc Tử Giám', 'Láng', 'Ô Chợ Dừa', 'Hồng Hà', 'Lĩnh Nam',

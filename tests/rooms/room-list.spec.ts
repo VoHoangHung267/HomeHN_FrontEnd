@@ -10,8 +10,8 @@ test.describe('Room list', () => {
 
   test('hien thi danh sach phong va redirect tu root', async ({ page }) => {
     const rooms = [
-      makeRoom(1, { title: 'Studio gan truong', district: 'Cau Giay' }),
-      makeRoom(2, { title: 'Phong tro gia tot', district: 'Dong Da' }),
+      makeRoom(1, { title: 'Studio gan truong', ward: 'Nghĩa Đô' }),
+      makeRoom(2, { title: 'Phong tro gia tot', ward: 'Kim Liên' }),
     ];
 
     await page.route(/.*\/api\/api\/rooms(\?.*)?$/, route => {
@@ -70,7 +70,7 @@ test.describe('Room list', () => {
   });
 
   test('loc theo tu khoa o thanh tim kiem', async ({ page }) => {
-    const rooms = [makeRoom(10, { title: 'Studio Cau Giay cho sinh vien', district: 'Cau Giay' })];
+    const rooms = [makeRoom(10, { title: 'Studio Nghia Do cho sinh vien', ward: 'Nghĩa Đô' })];
 
     await page.route(/.*\/api\/api\/rooms(\?.*)?$/, async route => {
       const url = new URL(route.request().url());
@@ -93,7 +93,7 @@ test.describe('Room list', () => {
   });
 
   test('AI search ap dung bo loc va hien ket qua phu hop', async ({ page }) => {
-    const rooms = [makeRoom(20, { title: 'Studio full noi that', district: 'Cau Giay', price: 3900000 })];
+    const rooms = [makeRoom(20, { title: 'Studio full noi that', ward: 'Nghĩa Đô', price: 3900000 })];
 
     await page.route('**/api/api/rooms/ai/parse-search', route => {
       return route.fulfill({
@@ -103,7 +103,7 @@ test.describe('Room list', () => {
           success: true,
           message: 'OK',
           data: {
-            district: 'Cau Giay',
+            ward: 'Nghĩa Đô',
             maxPrice: 4000000,
             roomType: 'STUDIO',
             isFurnished: true,
@@ -116,11 +116,11 @@ test.describe('Room list', () => {
 
     await page.route(/.*\/api\/api\/rooms(\?.*)?$/, async route => {
       const url = new URL(route.request().url());
-      const district = url.searchParams.get('district');
+      const ward = url.searchParams.get('ward');
       const roomType = url.searchParams.get('roomType');
       const maxPrice = url.searchParams.get('maxPrice');
       const isFurnished = url.searchParams.get('isFurnished');
-      const matched = district === 'Cau Giay' && roomType === 'STUDIO' && maxPrice === '4000000' && isFurnished === 'true';
+      const matched = ward === 'Nghĩa Đô' && roomType === 'STUDIO' && maxPrice === '4000000' && isFurnished === 'true';
 
       await route.fulfill({
         status: 200,

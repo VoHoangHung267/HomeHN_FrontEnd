@@ -20,11 +20,11 @@
           <h3 class="filter-title">Bộ lọc</h3>
 
           <div class="filter-section">
-            <label class="filter-label">Quận / Huyện</label>
-            <select class="form-control" [(ngModel)]="filter.district">
-              <option value="">Tất cả quận/huyện</option>
-              @for (d of districts; track d) {
-                <option [value]="d">{{ d }}</option>
+            <label class="filter-label">Phường / Xã</label>
+            <select class="form-control" [(ngModel)]="filter.ward">
+              <option value="">Tất cả phường/xã</option>
+              @for (w of wards; track w) {
+                <option [value]="w">{{ w }}</option>
               }
             </select>
           </div>
@@ -185,7 +185,7 @@
                     <span>👥 {{ room.maxPeople }} người</span>
                     <span>{{ genderLabel(room.genderRequirement) }}</span>
                   </div>
-                  <div class="room-location">📍 {{ room.district }}, {{ room.city }}</div>
+                  <div class="room-location">📍 {{ room.ward }}, {{ room.city }}</div>
                   @if (room.amenities.length > 0) {
                     <div class="room-amenities">
                       @for (a of room.amenities.slice(0, 3); track a) {

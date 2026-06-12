@@ -21,9 +21,9 @@
     <div class="filter-bar">
       <input type="text" class="form-control filter-input" [(ngModel)]="filter.keyword"
              placeholder="Tìm tên phòng, địa chỉ..." (keyup.enter)="applyFilter()" />
-      <select class="form-control filter-select" [(ngModel)]="filter.district">
-        @for (d of districts; track d) {
-          <option [value]="d">{{ d || 'Tất cả phường/xã' }}</option>
+      <select class="form-control filter-select" [(ngModel)]="filter.ward">
+        @for (w of wards; track w) {
+          <option [value]="w">{{ w || 'Tất cả phường/xã' }}</option>
         }
       </select>
       <select class="form-control filter-select" [(ngModel)]="filter.status">
@@ -74,7 +74,7 @@
                            class="room-thumb" [alt]="room.title" />
                       <div>
                         <div class="room-row-title">{{ room.title }}</div>
-                        <div class="room-row-loc">{{ room.district }} · {{ room.area }}m²</div>
+                        <div class="room-row-loc">{{ room.ward }} · {{ room.area }}m²</div>
                       </div>
                     </div>
                   </td>

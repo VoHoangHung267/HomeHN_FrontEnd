@@ -49,7 +49,7 @@ import { Room, ROOM_TYPE_LABELS, RoomType } from '../../../core/models';
               <span>📐 {{ room.area }}m²</span>
               <span>👥 {{ room.maxPeople }} người</span>
             </div>
-            <div class="room-location">📍 {{ room.district }}, {{ room.city }}</div>
+            <div class="room-location">📍 {{ room.ward }}, {{ room.city }}</div>
           </div>
         </div>
       }

@@ -11,7 +11,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ExtractRoomFormResult, RoomService } from '../../../core/services/room.service';
 import { ToastService } from '../../../core/services/toast.service';
 import {
-  RoomFormData, ROOM_TYPE_LABELS, DISTRICTS_HN,
+  RoomFormData, ROOM_TYPE_LABELS, WARDS_HN,
   AMENITIES_LIST, GeoResult
 } from '../../../core/models';
 
@@ -37,7 +37,6 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
     descriptionMaxLength: 5000,
     addressMaxLength: 255,
     wardMaxLength: 255,
-    districtMaxLength: 255,
     cityMaxLength: 255,
     priceMax: 9_999_999_999.99,
     areaMin: 5,
@@ -74,7 +73,6 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
     otherFees: 0,
     address: '',
     ward: '',
-    district: '',
     city: 'Hà Nội',
     latitude: undefined,
     longitude: undefined,
@@ -88,7 +86,7 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
   previewImages = signal<RoomImagePreview[]>([]);
 
   readonly roomTypes = ROOM_TYPE_LABELS;
-  readonly districts = DISTRICTS_HN;
+  readonly wards = WARDS_HN;
   readonly amenitiesList = AMENITIES_LIST;
   readonly limits = RoomFormComponent.LIMITS;
 
@@ -142,7 +140,6 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
           otherFees: room.otherFees,
           address: room.address,
           ward: room.ward,
-          district: room.district,
           city: room.city,
           latitude: room.latitude,
           longitude: room.longitude,
@@ -369,7 +366,6 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
     if (data.otherFees !== null && data.otherFees !== undefined) this.form.otherFees = Number(data.otherFees);
     if (data.address?.trim()) this.form.address = data.address.trim();
     if (data.ward?.trim()) this.form.ward = data.ward.trim();
-    if (data.district?.trim()) this.form.district = data.district.trim();
     if (data.city?.trim()) this.form.city = data.city.trim();
     if (data.roomType) this.form.roomType = data.roomType;
     if (data.isFurnished !== null && data.isFurnished !== undefined) this.form.isFurnished = data.isFurnished;
@@ -429,7 +425,7 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private validateForm(): string | null {
     if (!this.form.title?.trim() || this.form.price == null || this.form.area == null
-      || !this.form.district?.trim() || !this.form.address?.trim() || !this.form.city?.trim()) {
+      || !this.form.ward?.trim() || !this.form.address?.trim() || !this.form.city?.trim()) {
       return 'Vui lòng điền đầy đủ thông tin bắt buộc (*)';
     }
 
@@ -449,9 +445,6 @@ export class RoomFormComponent implements OnInit, AfterViewInit, OnDestroy {
       return `Phường/xã không được vượt quá ${this.limits.wardMaxLength} ký tự`;
     }
 
-    if (this.form.district.trim().length > this.limits.districtMaxLength) {
-      return `Quận/huyện không được vượt quá ${this.limits.districtMaxLength} ký tự`;
-    }
 
     if (this.form.city.trim().length > this.limits.cityMaxLength) {
       return `Thành phố không được vượt quá ${this.limits.cityMaxLength} ký tự`;

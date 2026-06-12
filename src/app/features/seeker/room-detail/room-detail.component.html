@@ -3,7 +3,7 @@
   <div class="container page">
 
     <div class="breadcrumb">
-      <a routerLink="/rooms">Tìm phòng</a> › <span>{{r.district}}</span> › <span class="current">Chi tiết</span>
+      <a routerLink="/rooms">Tìm phòng</a> › <span>{{r.ward}}</span> › <span class="current">Chi tiết</span>
     </div>
 
     <div class="detail-layout">
@@ -32,7 +32,7 @@
             <div>
               <div class="price-main">{{r.price | number:'1.0-0'}}đ<span>/tháng</span></div>
               <h1 class="room-name">{{r.title}}</h1>
-              <div class="location-line">📍 {{r.address}}, {{r.district}}, {{r.city}}</div>
+              <div class="location-line">📍 {{r.address}}, {{r.ward}}, {{r.city}}</div>
             </div>
             <button class="btn-fav" (click)="toggleFav()" [title]="r.favorited ? 'Bỏ yêu thích' : 'Yêu thích'">
               <span>{{r.favorited ? '❤️' : '🤍'}}</span>
@@ -120,7 +120,7 @@
                     [alt]="item.title" />
                   <div class="recommendation-body">
                     <div class="recommendation-title">{{ item.title }}</div>
-                    <div class="recommendation-location">{{ item.district }}, {{ item.city }}</div>
+                    <div class="recommendation-location">{{ item.ward }}, {{ item.city }}</div>
                   </div>
                   <div class="recommendation-price">
                     {{ item.price | number:'1.0-0' }}đ

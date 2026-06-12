@@ -127,17 +127,11 @@
                      name="city" required placeholder="Hà Nội" />
             </div>
             <div class="form-group">
-              <label class="form-label">Quận / Huyện *</label>
-              <select class="form-control" [(ngModel)]="form.district" name="district" required>
-                <option value="">Chọn quận/huyện</option>
-                @for (d of districts; track d) { <option [value]="d">{{ d }}</option> }
+              <label class="form-label">Phường / Xã *</label>
+              <select class="form-control" [(ngModel)]="form.ward" name="ward" required>
+                <option value="">Chọn phường/xã</option>
+                @for (w of wards; track w) { <option [value]="w">{{ w }}</option> }
               </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Phường / Xã</label>
-              <input type="text" class="form-control" [(ngModel)]="form.ward"
-                     [maxlength]="limits.wardMaxLength"
-                     name="ward" placeholder="Dịch Vọng" />
             </div>
           </div>
 

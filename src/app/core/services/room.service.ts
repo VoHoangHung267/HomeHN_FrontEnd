@@ -14,7 +14,6 @@ export interface GenerateRoomDescriptionPayload {
   otherFees?: number | null;
   address?: string;
   ward?: string;
-  district?: string;
   city?: string;
   roomType?: RoomType;
   isFurnished?: boolean;
@@ -42,7 +41,6 @@ export interface ExtractRoomFormResult {
   otherFees?: number | null;
   address?: string | null;
   ward?: string | null;
-  district?: string | null;
   city?: string | null;
   roomType?: RoomType | null;
   isFurnished?: boolean | null;
@@ -58,7 +56,7 @@ export interface AiSearchPayload {
 
 export interface AiSearchResult {
   keyword?: string | null;
-  district?: string | null;
+  ward?: string | null;
   minPrice?: number | null;
   maxPrice?: number | null;
   minArea?: number | null;

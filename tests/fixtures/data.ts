@@ -36,7 +36,7 @@ export function makeRoom(id: number, overrides: Record<string, unknown> = {}) {
     otherFees: 100000,
     address: '12 Nguyen Trai',
     ward: 'Thanh Xuan Trung',
-    district: 'Cau Giay',
+    ward: 'Nghĩa Đô',
     city: 'Ha Noi',
     latitude: 21.028,
     longitude: 105.804,

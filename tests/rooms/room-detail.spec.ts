@@ -10,7 +10,7 @@ test.describe('Room detail', () => {
       description: 'Phong dep, gan truong va co noi that day du',
       landlordName: 'Chu nha HN',
       landlordPhone: '0911222333',
-      district: 'Cau Giay',
+      ward: 'Nghĩa Đô',
     });
     const recommendations = [
       makeRoom(2, { title: 'Phong tuong tu 1' }),

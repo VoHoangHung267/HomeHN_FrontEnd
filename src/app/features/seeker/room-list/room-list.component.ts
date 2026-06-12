@@ -6,7 +6,6 @@ import { AuthService } from '../../../core/services/auth.service';
 import { AiSearchResult, RoomService } from '../../../core/services/room.service';
 import { ToastService } from '../../../core/services/toast.service';
 import {
-  DISTRICTS_HN,
   GENDER_LABELS,
   GenderRequirement,
   Page,
@@ -14,7 +13,8 @@ import {
   RoomFilter,
   ROOM_TYPE_LABELS,
   STATUS_LABELS,
-  RoomType
+  RoomType,
+  WARDS_HN
 } from '../../../core/models';
 
 @Component({
@@ -42,7 +42,7 @@ export class RoomListComponent implements OnInit {
   aiSearchQuery = '';
 
   filter: RoomFilter = { size: 12, sortBy: 'createdAt' };
-  readonly districts = DISTRICTS_HN;
+  readonly wards = WARDS_HN;
   readonly roomTypes = ROOM_TYPE_LABELS;
   readonly skeletons = Array(8);
   readonly priceMinLimit = 0;
@@ -62,7 +62,7 @@ export class RoomListComponent implements OnInit {
     const f = this.filter;
     const out: { key: string; label: string }[] = [];
     if (f.keyword) out.push({ key: 'keyword', label: `"${f.keyword}"` });
-    if (f.district) out.push({ key: 'district', label: f.district });
+    if (f.ward) out.push({ key: 'ward', label: f.ward });
     if (f.roomType) out.push({ key: 'roomType', label: ROOM_TYPE_LABELS[f.roomType as RoomType] });
     if (f.minPrice) out.push({ key: 'minPrice', label: `Từ ${f.minPrice?.toLocaleString('vi-VN')}đ` });
     if (f.maxPrice) out.push({ key: 'maxPrice', label: `Đến ${f.maxPrice?.toLocaleString('vi-VN')}đ` });
@@ -203,7 +203,7 @@ export class RoomListComponent implements OnInit {
     this.filter = {
       ...this.filter,
       keyword: data.keyword?.trim() || undefined,
-      district: data.district?.trim() || undefined,
+      ward: data.ward?.trim() || undefined,
       minPrice: data.minPrice ?? undefined,
       maxPrice: data.maxPrice ?? undefined,
       minArea: data.minArea ?? undefined,

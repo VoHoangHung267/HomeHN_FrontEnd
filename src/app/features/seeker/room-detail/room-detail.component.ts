@@ -43,7 +43,7 @@ export class RoomDetailComponent implements OnInit {
   readonly auth                  = inject(AuthService);
   private readonly toast         = inject(ToastService);
 
-  // â”€â”€ Room â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
   room         = signal<Room | null>(null);
   recommendations = signal<Room[]>([]);
   activeIndex  = signal(0);
@@ -52,7 +52,7 @@ export class RoomDetailComponent implements OnInit {
   activeImage = computed(() => this.room()?.imageUrls[this.activeIndex()] ?? '');
   genderLabel = computed(() => this.room() ? GENDER_LABELS[this.room()!.genderRequirement] : '');
 
-  // â”€â”€ Report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  
   showReportModal = signal(false);
   selectedReason  = signal('');
   customReason    = signal('');
@@ -92,7 +92,7 @@ export class RoomDetailComponent implements OnInit {
     'Khác',
   ];
 
-  // â”€â”€ Review â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  
   reviews       = signal<Review[]>([]);
   myReview      = signal<Review | null>(null);
   showReviewForm = signal(false);
@@ -123,7 +123,7 @@ export class RoomDetailComponent implements OnInit {
     return Math.round((total / reviews.length) * 10) / 10;
   });
 
-  // â”€â”€ Lifecycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  
   ngOnInit(): void {
     this.route.paramMap.subscribe(p => {
       const id = Number(p.get('id'));
@@ -148,7 +148,7 @@ export class RoomDetailComponent implements OnInit {
     });
   }
 
-  // â”€â”€ Gallery â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  
   setImage(i: number): void { this.activeIndex.set(i); }
   prevImage(): void {
     const len = this.room()?.imageUrls.length ?? 1;
@@ -160,7 +160,7 @@ export class RoomDetailComponent implements OnInit {
   }
   toggleDesc(): void { this.descExpanded.update(v => !v); }
 
-  // â”€â”€ Favorite â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  
   toggleFav(): void {
     if (!this.auth.isLoggedIn()) { this.router.navigate(['/auth/login']); return; }
     const r = this.room();
@@ -170,8 +170,7 @@ export class RoomDetailComponent implements OnInit {
     });
   }
 
-  // â”€â”€ Chat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  openChat(): void {
+    openChat(): void {
     const r = this.room();
     if (!r) return;
     if (!this.auth.isLoggedIn()) { this.router.navigate(['/auth/login']); return; }
@@ -355,8 +354,7 @@ export class RoomDetailComponent implements OnInit {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // â”€â”€ Report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  finalReason(): string {
+    finalReason(): string {
     return this.selectedReason() === 'Khác'
       ? this.customReason().trim()
       : this.selectedReason();
@@ -388,8 +386,7 @@ export class RoomDetailComponent implements OnInit {
     });
   }
 
-  // â”€â”€ Review helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  starLabel(): string {
+   starLabel(): string {
     const labels = ['', 'Rất tệ', 'Tệ', 'Bình thường', 'Tốt', 'Rất tốt'];
     return labels[this.reviewHover() || this.reviewRating()] ?? '';
   }
@@ -518,8 +515,7 @@ export class RoomDetailComponent implements OnInit {
     this.resetReviewForm();
   }
 
-  // â”€â”€ Review CRUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  submitReview(): void {
+   submitReview(): void {
     const r = this.room();
     if (!r || this.reviewRating() === 0) return;
     this.reviewSaving.set(true);

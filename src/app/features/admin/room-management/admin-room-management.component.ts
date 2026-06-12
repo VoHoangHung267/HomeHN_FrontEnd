@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { AdminRoomFilter, AdminReviewItem, AdminService, ReportItem } from '../../../core/services/admin.service';
-import { DISTRICTS_HN, Page, ROOM_TYPE_LABELS, Room, RoomStatus, STATUS_LABELS } from '../../../core/models';
+import { Page, ROOM_TYPE_LABELS, Room, RoomStatus, STATUS_LABELS, WARDS_HN } from '../../../core/models';
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
@@ -30,7 +30,7 @@ export class AdminRoomManagementComponent implements OnInit {
   loadingRooms = signal(false);
 
   filter: AdminRoomFilter = { page: 0, size: 20 };
-  readonly districts = ['', ...DISTRICTS_HN];
+  readonly wards = ['', ...WARDS_HN];
   readonly statusOpts = [
     { value: '', label: 'Tất cả' },
     { value: 'ACTIVE', label: 'Đang hiển thị' },

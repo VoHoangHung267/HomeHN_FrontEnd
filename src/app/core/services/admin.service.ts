@@ -33,7 +33,7 @@ export type AdminReviewItem = Review & {
 
 export interface AdminRoomFilter {
   keyword?: string; 
-  district?: string; 
+  ward?: string; 
   status?: string;
   landlordId?: number; 
   page?: number; 
